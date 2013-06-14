@@ -35,6 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //var python3_backend_script = 'web_exec_py3.py';
 
 // uncomment below if you're running on Google App Engine using the built-in app.yaml
+
+$ = jQuery;
+
 var python2_backend_script = 'exec';
 var python3_backend_script = '../../../csc_optv3.php';
 
@@ -116,6 +119,7 @@ $(document).ready(function() {
                                                     textualMemoryLabels: textRefsBool,
                                                     showOnlyOutputs: showOnlyOutputsBool,
                                                    });
+              resizeContainer();
           }
         },
         "json");
@@ -129,10 +133,20 @@ $(document).ready(function() {
 
   // redraw connector arrows on window resize
   $(window).resize(function() {
-    if (appMode == 'display') {
+    if (typeof appMode !== "undefined" && appMode == 'display') {
       myVisualizer.redrawConnectors();
     }
   });
+
+    var parent_iframe_id = $.bbq.getState("containerID");
+
+    var resizeContainer = function() {
+        $("#" + parent_iframe_id, window.parent.document).
+            height($("#vizDiv").height()+20);
+    };
+
+    $("body").on("click", "button", resizeContainer);
+    $("body").on("slide", ".ui-slider", resizeContainer);
 
 });
 
