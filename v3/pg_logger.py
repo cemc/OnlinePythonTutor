@@ -991,7 +991,11 @@ class PGLogger(bdb.Bdb):
           #   x = 2
           #   while True: x = x*x
           if resource_module_loaded and (not self.disable_security_checks):
-            resource.setrlimit(resource.RLIMIT_AS, (200000000, 200000000))
+            try:
+              resource.setrlimit(resource.RLIMIT_AS, (200000000, 200000000))
+            except ValueError as E:
+              if E.args != ('not allowed to raise maximum limit',):
+                raise E
             resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
 
             # protect against unauthorized filesystem accesses ...
