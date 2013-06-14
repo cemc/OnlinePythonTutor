@@ -693,3 +693,8 @@ div.ExecutionVisualizer div#vizHeader {
   max-width: 700px;
 }
 
+.ui-resizable-e {
+  background-color: #DDDDFF;
+  border: 3px solid #EEEEFF;
+  box-sizing: border-box;
+}
