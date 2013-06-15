@@ -495,6 +495,15 @@ ExecutionVisualizer.prototype.render = function() {
   this.updateOutput();
 
   this.hasRendered = true;
+
+  if (this.params.resizeLeftRight) {// horizontal resize
+    $('#pyCodeOutputDiv').css({"max-width":"inherit"});
+    $('#codeDisplayDiv').css({"max-width":"inherit"});
+      $('#codeDisplayDiv').css({"width":"350px"});
+    $('#executionSlider').css({"width":"75%"});
+    $('#codeDisplayDiv').resizable({handles:"e"});
+  }
+
 }
 
 

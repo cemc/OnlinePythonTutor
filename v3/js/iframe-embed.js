@@ -140,12 +140,9 @@ $(document).ready(function() {
                                                     drawParentPointers: drawParentPointerBool,
                                                     textualMemoryLabels: textRefsBool,
                                                     showOnlyOutputs: showOnlyOutputsBool,
+                                                    resizeLeftRight: true
                                                    });
             if (resizeContainer) resizeContainerNow();
-            $('#pyCodeOutputDiv').css({"max-width":"inherit"});
-            $('#codeDisplayDiv').css({"max-width":"inherit"});
-            $('#executionSlider').css({"width":"75%"});
-            $('#codeDisplayDiv').resizable({handles:"e"});
           }
         },
         "json");
