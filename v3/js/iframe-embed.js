@@ -97,8 +97,6 @@ $(document).ready(function() {
           $(container).height($("#vizDiv").height()+20);
       };
 
-      $("body").on("click", "button", resizeContainerNow);
-      $("body").on("slide", ".ui-slider", resizeContainerNow);
   }
 
       
@@ -143,6 +141,7 @@ $(document).ready(function() {
                                                     resizeLeftRight: true,
                                                     highlightLines: typeof $.bbq.getState("highlightLines") !== undefined
                                                    });
+            myVisualizer.updateOutputCallback = resizeContainerNow;
             if (resizeContainer) resizeContainerNow();
           }
         },
@@ -162,4 +161,20 @@ $(document).ready(function() {
     }
   });
 
+    // set keyboard bindings
+    $(document).keydown(function(k) {
+        //if (!keyStuckDown) {
+        if (k.keyCode == 37) { // left arrow
+            if (myVisualizer.stepBack()) {
+                k.preventDefault(); // don't horizontally scroll the display
+                keyStuckDown = true;
+            }
+        }
+        else if (k.keyCode == 39) { // right arrow
+            if (myVisualizer.stepForward()) {
+                k.preventDefault(); // don't horizontally scroll the display
+                keyStuckDown = true;
+            }
+        }});
+    //}
 });
