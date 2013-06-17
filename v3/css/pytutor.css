@@ -693,12 +693,25 @@ div.ExecutionVisualizer div#vizHeader {
   max-width: 700px;
 }
 
-.ui-resizable-e {
+div.ExecutionVisualizer .ui-resizable-e {
   background-color: #DDDDFF;
   border: 3px solid white;
   box-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
-.ui-resizable-e:hover {
+div.ExecutionVisualizer .ui-resizable-e:hover {
   border-color: #DDDDFF;
+}
+
+div.ExecutionVisualizer .highlight-curr {
+  background-color: #FFFF66;
+}
+
+div.ExecutionVisualizer .highlight-prev {
+  background-color: #F0F0EA;
+}
+
+div.ExecutionVisualizer .highlight-legend {
+  padding: 2px;
 }
