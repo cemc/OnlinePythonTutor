@@ -2142,6 +2142,8 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       var label = obj[0].toLowerCase();
       if (myViz.params.lang == 'java' && label == 'list')
         visibleLabel = 'array';
+      else 
+        visibleLabel = label;
 
       assert(obj.length >= 1);
       if (obj.length == 1) {
