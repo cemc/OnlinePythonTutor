@@ -223,6 +223,7 @@ $(document).ready(function() {
                                                         textualMemoryLabels: ($('#textualMemoryLabelsSelector').val() == 'true'),
                                                         showOnlyOutputs: ($('#showOnlyOutputsSelector').val() == 'true'),
                                                         executeCodeWithRawInputFunc: executeCodeWithRawInput,
+                                                        highlightLines: true
                                                         //allowEditAnnotations: true,
                                                        });
                   
