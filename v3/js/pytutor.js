@@ -529,9 +529,12 @@ ExecutionVisualizer.prototype.render = function() {
   if (this.params.resizeLeftRight) {// horizontal resize
     $('#pyCodeOutputDiv').css({"max-width":"inherit"});
     $('#codeDisplayDiv').css({"max-width":"inherit"});
-      $('#codeDisplayDiv').css({"width":"350px"});
+    $('#pyStdout').css({"max-width":"inherit"});
     $('#executionSlider').css({"width":"75%"});
-    $('#codeDisplayDiv').resizable({handles:"e"});
+    var syncStdoutWidth = function(event, ui){
+        $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));};
+    $('#codeDisplayDiv').resizable({handles:"e", resize: syncStdoutWidth});
+    syncStdoutWidth(null, {size: {width: $('#codeDisplayDiv').width()}});
   }
 
 }

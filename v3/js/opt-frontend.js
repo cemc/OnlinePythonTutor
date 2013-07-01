@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // uncomment below if you're running on Google App Engine using the built-in app.yaml
 var python2_backend_script = 'exec';
-var python3_backend_script = null;
+var python3_backend_script = '../../../csc_optv3.php';
 
 var appMode = 'edit'; // 'edit', 'display', or 'display_no_frills'
 
@@ -225,7 +225,16 @@ $(document).ready(function() {
                                                         executeCodeWithRawInputFunc: executeCodeWithRawInput,
                                                         //allowEditAnnotations: true,
                                                        });
-
+                  
+                // allow left-right resizer
+                $('#pyCodeOutputDiv').css({"max-width":"inherit"});
+                $('#codeDisplayDiv').css({"max-width":"inherit"});
+                $('#codeDisplayDiv').css({"width":"350px"});
+                $('#executionSlider').css({"width":"75%"});
+                var syncStdoutWidth = function(event, ui){
+                  $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));};
+                $('#codeDisplayDiv').resizable({handles:"e", resize: syncStdoutWidth});
+                syncStdoutWidth(null, {size: {width: $('#codeDisplayDiv').width()}});
 
                 // set keyboard bindings
                 $(document).keydown(function(k) {
