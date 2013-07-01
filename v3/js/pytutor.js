@@ -138,8 +138,8 @@ function ExecutionVisualizer(domRootID, dat, params) {
     this.params = {}; // make it an empty object by default
   }
 
-  var arrowLinesDef = (this.params.arrowLines !== undefined);
-  var highlightLinesDef = (this.params.highlightLines !== undefined);
+  var arrowLinesDef = (params.arrowLines !== undefined);
+  var highlightLinesDef = (params.highlightLines !== undefined);
 
   if (!arrowLinesDef && !highlightLinesDef) {
       // neither is set
@@ -157,6 +157,9 @@ function ExecutionVisualizer(domRootID, dat, params) {
       // only highlightLines set
       this.params.arrowLines = !(this.params.highlightLines);
   }
+
+  if (this.params.lang == undefined) 
+    this.params.lang = "python";
 
   // needs to be unique!
   this.visualizerID = curVisualizerID;
@@ -433,12 +436,14 @@ ExecutionVisualizer.prototype.render = function() {
       .css('max-height', this.params.codeDivHeight + 'px');
   }
 
-
+  var globalsLabel = "Global variables";
+  if (myViz.params.lang == 'java') globalsLabel = "Static fields";
+  
   // create a persistent globals frame
   // (note that we need to keep #globals_area separate from #stack for d3 to work its magic)
   this.domRoot.find("#globals_area").append('<div class="stackFrame" id="'
     + myViz.generateID('globals') + '"><div id="' + myViz.generateID('globals_header')
-    + '" class="stackFrameHeader">Global variables</div><table class="stackFrameVarTable" id="'
+    + '" class="stackFrameHeader">'+globalsLabel+'</div><table class="stackFrameVarTable" id="'
     + myViz.generateID('global_table') + '"></table></div>');
 
 
@@ -2027,17 +2032,26 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
     var typ = typeof obj;
 
     if (obj == null) {
-      d3DomElement.append('<span class="nullObj">None</span>');
+      if (myViz.params.lang == 'java')
+        d3DomElement.append('<span class="nullObj">null</span>');
+      else
+        d3DomElement.append('<span class="nullObj">None</span>');
     }
     else if (typ == "number") {
       d3DomElement.append('<span class="numberObj">' + obj + '</span>');
     }
     else if (typ == "boolean") {
       if (obj) {
-        d3DomElement.append('<span class="boolObj">True</span>');
+        if (myViz.params.lang == 'java')
+          d3DomElement.append('<span class="boolObj">true</span>');
+        else
+          d3DomElement.append('<span class="boolObj">True</span>');
       }
       else {
-        d3DomElement.append('<span class="boolObj">False</span>');
+        if (myViz.params.lang == 'java')
+          d3DomElement.append('<span class="boolObj">false</span>');
+        else
+          d3DomElement.append('<span class="boolObj">False</span>');
       }
     }
     else if (typ == "string") {
@@ -2049,6 +2063,14 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       literalStr = '"' + literalStr + '"';
 
       d3DomElement.append('<span class="stringObj">' + literalStr + '</span>');
+    }
+    else if (typ == "number") {
+      d3DomElement.append('<span class="numberObj">' + obj + '</span>');
+    }
+    else if (obj instanceof Array && obj[0] == "PRIMITIVE") {
+      if (obj[1] == "void")
+        d3DomElement.append('<span class="voidObj">void</span>');
+      else assert(false);
     }
     else {
       assert(false);
@@ -2118,13 +2140,15 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
 
     if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT') {
       var label = obj[0].toLowerCase();
+      if (myViz.params.lang == 'java' && label == 'list')
+        visibleLabel = 'array';
 
       assert(obj.length >= 1);
       if (obj.length == 1) {
-        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + 'empty ' + label + '</div>');
+        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + 'empty ' + visibleLabel + '</div>');
       }
       else {
-        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + label + '</div>');
+        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + visibleLabel + '</div>');
         d3DomElement.append('<table class="' + label + 'Tbl"></table>');
         var tbl = d3DomElement.children('table');
 
@@ -2967,7 +2991,7 @@ function structurallyEquivalent(obj1, obj2) {
 
 function isPrimitiveType(obj) {
   var typ = typeof obj;
-  return ((obj == null) || (typ != "object"));
+  return ((obj == null) || (typ != "object") || (obj instanceof Array && obj[0] == "PRIMITIVE"));
 }
 
 function getRefID(obj) {
