@@ -526,9 +526,10 @@ ExecutionVisualizer.prototype.render = function() {
 
   this.hasRendered = true;
 
-  if (this.params.resizeLeftRight) {// horizontal resize
+  {// left-right horizontal resizer
     $('#pyCodeOutputDiv').css({"max-width":"inherit"});
     $('#codeDisplayDiv').css({"max-width":"inherit"});
+    $('#codeDisplayDiv').css({"width":"350px"}); // or whatever default width you want
     $('#pyStdout').css({"max-width":"inherit"});
     $('#executionSlider').css({"width":"75%"});
     var syncStdoutWidth = function(event, ui){

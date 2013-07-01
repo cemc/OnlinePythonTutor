@@ -141,7 +141,6 @@ $(document).ready(function() {
                                                     drawParentPointers: drawParentPointerBool,
                                                     textualMemoryLabels: textRefsBool,
                                                     showOnlyOutputs: showOnlyOutputsBool,
-                                                    resizeLeftRight: true,
                                                     highlightLines: typeof $.bbq.getState("highlightLines") !== "undefined"
                                                    });
             myVisualizer.updateOutputCallback = resizeContainerNow;
