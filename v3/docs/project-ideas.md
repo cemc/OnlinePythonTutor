@@ -1,17 +1,17 @@
 # Project Ideas
 
-This document provides an overview of some project ideas for extending
+This (messy!) document provides an overview of some project ideas for extending
 Online Python Tutor (thereafter abbreviated as OPT). View it online at:
 
 https://github.com/pgbovine/OnlinePythonTutor/blob/master/v3/docs/project-ideas.md
-
-These projects are listed roughly in order of difficulty.
 
 Email philip@pgbovine.net if you're interested in working on anything here, or if you have other
 project ideas.
 
 
-## Enable beautiful printouts of OPT visualizations (easy)
+## Stylistic
+
+### Beautiful print-outs of OPT visualizations
 
 A lot of instructors want to print out their OPT visualizations to make handouts or lecture notes
 for students.
@@ -22,8 +22,11 @@ The project involves creating a custom CSS optimized for printing, especially on
 Here is an example how-to guide to get started creating a CSS print style sheet ...
 http://coding.smashingmagazine.com/2011/11/24/how-to-set-up-a-print-style-sheet/
 
+Another idea is to get OPT to output SVG, PDF, or another
+printer-friendly format.
 
-## Implement responsive web UI design for OPT frontend (easy/medium)
+
+### Responsive web design for OPT UI
 
 This is a good project for someone interested in visual and web design.
 
@@ -32,15 +35,19 @@ so that OPT visualizations (and the surrounding user interface) look good on dis
 ranging from smartphones to tablets to laptops to giant desktop monitors.
 
 
-## Rich user input widgets (medium)
+## Frontend
+
+### Rich user input widgets
 
 Right now Online Python Tutor takes only code as input. However, it would be great to create widgets that allow
 the user to input data into their code. That way, they can visualize the same code executing on different data
-without changing the code. Currently, the only way to do this is to "hard-code" the input data as global constants.
+without changing the code. Currently, the only way to do this is to
+"hard-code" the input data as global constants, which is cumbersome.
 
-Here are some example sorts of input widgets:
+Here are some examples of input widgets:
 
-- Text input widget to simulate stdin (e.g., for use with raw_input())
+- Text input widget to simulate stdin. This could be used with raw_input()/input()
+
 - Interactive widget to draw mathematical graphs (e.g., nodes and edges); useful for visualizing graph/tree manipulation algorithms
 - A 2-D canvas where the user can draw points and lines in a coordinate system; useful for visualizing simple computational geometry algorithms
 - A 2-D matrix of numbers or colored blocks for, say, a PacMan world
@@ -48,124 +55,208 @@ Here are some example sorts of input widgets:
 - A text box that represents a file on the filesystem. Imagine a web-based I/O simulator where there would be a text box simulating a file object, and then I/O calls such as open, readline, etc. would be intercepted and visualized as iterating (pointing) to the file object one line at a time, reading each line into a string, etc. Writing into a file can also be visualized in this way too. And seeking, overwriting, appending, etc.
 
 
-## Custom data structure visualizations (medium)
+### Custom data structure visualizations
 
-Right now Online Python Tutor can render only basic Python data structures. While this is sufficient for teaching introductory CS courses, intermediate and advanced CS students must learn algorithms involving more sophisticated data structures such as binary trees and graphs. The goal of this project is to create a set of effective custom renderers for data structures such as trees, graphs, numerical matrices, and even simple 2D graphical worlds (e.g., for Pac-Man or Conway’s Game of Life). These renderers will make Online Python Tutor useful in a far larger variety of CS courses and online textbooks.
+Right now Online Python Tutor can render only basic Python data structures.
+
+While this is sufficient for teaching introductory CS courses, intermediate and advanced CS students must learn
+algorithms involving more sophisticated data structures such as binary trees and graphs.
+The goal of this project is to create a set of effective custom renderers for data structures
+such as:
+
+- trees
+- graphs
+- numerical matrices
+- simple 2D graphical worlds (e.g., for Pac-Man or Conway’s Game of Life)
+- rendering lists of numbers as bar/line graphs, charts, and other quantitative data visualizations (e.g., using Google Charts API)
+- file objects
+- DSL components such as logic gates for a logic simulator written in Python, or proof trees for formal logic courses
+ 
+These renderers will make Online Python Tutor useful in a far larger variety of CS courses and online textbooks
+beyond CS0/CS1 sorts of intro classes.
+
+One ultimate goal is to make OPT capable of visualizing classic AI and algorithm textbook algorithms
+that otherwise would need to be tediously built as one-off special-case visualizations.
+
+From an email excerpt in May 2013: {
+I recently added a feature to Online Python Tutor (OPT) that enables user programs to output HTML/CSS/JS, in addition to printing to stdout. Thus, if a program calls html_output(" ... "), when OPT steps over that line, it will render the HTML string in a div. This makes it possible to generate a wide array of visualizations in pure Python (by simply constructing strings that represent legal HTML/CSS/JS).
+
+For the file I/O example, I can imagine creating a special File class that implements "file-like" stream I/O methods. Then the user program might look like:
+
+    import VisualFile
+    f = VisualFile(<string contents of the file>)
+    for line in open(f):
+        <parse line>
 
 
-## Custom Rendering API and Lightweight Plug-In System (medium)
-
-Right now Online Python Tutor renders Python data structures in a single, fixed way. However, different instructors have different preferences for how they want certain objects to render on-screen (and argue passionately for their specific tastes). There is currently no way for them to specify these custom rendering schemes without mucking around with intricate JavaScript code in the frontend. The goal of this project is to create a clean API and plugin architecture so that JavaScript-savvy instructors can easily create custom renderers.
-
-
-## Offline mode for use as a production debugger (medium)
-
-From a reader comment: "As a teaching tool it is invaluable, not only for teaching python, but for programming in general (what is going on in memory...).
-I've actively used it to debug / trace short pieces of code. Any chance of having it offline (and without the limitations of an online tool like the inability to load all modules)? That would make a perfect pdb visualization tool."
-
-You could imagine running a webserver on localhost and using OPT as a graphical frontend for pdb; interesting idea!
-
-Notes from an email I sent on 2012-10-24: {
-
-One possible offline application is to use OPT as a visual debugger for pdb (http://docs.python.org/library/pdb.html). The use case here would be:
-
-1.) The user launches a special version of pdb augmented with OPT.
-2.) The user types in some Python command to visualize.
-3.) pdb starts a local webserver and pops up a web browser window.
-4.) The visualization appears in the web browser window, and the user can interact with it.
-
-Actually, now that I think about it, you can start even simpler without pdb. Here is an even simpler starting point:
-
-1.) The user writes some code to visualize in a file on his/her computer.
-2.) The user runs a special Python script that runs OPT on that file, launches a local webserver, and pops open a web browser window.
-3.) The visualization appears in the web browser window.
-
-Ok, that seems simpler as a starting point, and it will still teach you about local webservers and interfacing between the OPT backend and frontend.
-
-Then comes the question of why this offline mode might be useful (beyond being a good learning exercise). After all, just by following the directions in the developer overview docs, you've essentially set up OPT to run offline without an Internet connection. So my plan above doesn't give you any extra functionality. However, I think the potential lies in integrating with a real debugger such as pdb, so that you can run large Python programs, pause execution, and then visualize selected data structures (rather than all data structures in the program, which can get overwhelming).
-
-Ok sorry that was mostly me thinking out loud.
-
+The class definition of VisualFile includes the proper HTML-generation code to render a pretty HTML representation of the file's contents. And when methods iterate over the file, it can render an HTML representation with certain lines or characters highlighted to represent, say, the current file pointer position, etc.
 }
 
-Ha, I guess you can call this "Offline Python Tutor"!
+
+There are (at least) two main ways to implement this feature:
+
+- Add custom data types to the trace and have the frontend render them
+  specially using JS visualization libraries such as d3.
+
+- Take advantage of OPT's (still-undocumented) ability to print
+  arbitrary HTML/CSS/JS to the canvas (just like how it can print stdout
+  output to a text box). This enables us to create custom data structure classes
+  with printHTML() methods that print their graphical representation to
+  the web page canvas. The dream here is to be able to write pure-Python modules for
+  each custom data type, which can "pretty-print" as HTML/CSS/JS.
 
 
-## Optimize display of object-oriented programs (medium)
+### Custom rendering API and plugin system
 
-This is a good project for an object-oriented programming enthusiast.
+Right now Online Python Tutor renders Python data structures in a single, fixed way.
+However, different instructors have different preferences for how they want certain objects to render
+on-screen (and argue passionately for their specific tastes).
+There is currently no way for them to specify these custom rendering schemes without mucking around with
+intricate JavaScript code in the frontend.
 
+The goal of this project is to create a clean API and plugin architecture so that JavaScript-savvy instructors
+can easily create custom renderers.
+
+The ultimate goal here is to completely replace one-off custom algorithm visualizations, whiteboard doodles,
+and ad-hoc PowerPoint slide deck animations of CS concepts.
+
+
+### Annotations for simplifying visualizations
+
+Right now OPT visualizes "everything" about program execution. However, that can easily lead to visual overload.
+Let's think about implementing annotations to selectively show/hide different parts of execution, so that instructors
+and students can hone in on what they find interesting. Examples:
+
+- annotate functions to trace/skip
+- annotate data structures (or parts) to show/hide
+- selectively expand or collapse data structure visualizations, which is useful for giant structures
+- line-based breakpoints (currently implemented as a hack by puttin `# break` at the end of a line)
+- conditional breakpoints
+
+Implementing annotations as ordinary code comments (rather than using a specialized UI) is elegant
+because the instructor's code examples are self-contained in plain text and easily archivable outside of OPT.
+
+As a concrete use case, think about how to "clean up" the display of object-oriented programs.
 Right now OPT naively visualizes all the steps that the Python interpreter takes when executing an
 object-oriented program, which leads to all sorts of extraneous variables, frames, and pointers
 lying around.
 
 <a href="http://pythontutor.com/visualize.html#code=%23+Inheritance+-+object-oriented+programming+intro%0A%23+Adapted+from+MIT+6.01+course+notes+(Section+3.5)%0A%23+http%3A//mit.edu/6.01/mercurial/spring10/www/handouts/readings.pdf%0A%0Aclass+Staff601%3A%0A++++course+%3D+'6.01'%0A++++building+%3D+34%0A++++room+%3D+501%0A%0A++++def+giveRaise(self,+percentage)%3A%0A++++++++self.salary+%3D+self.salary+%2B+self.salary+*+percentage%0A%0Aclass+Prof601(Staff601)%3A%0A++++salary+%3D+100000%0A%0A++++def+__init__(self,+name,+age)%3A%0A++++++++self.name+%3D+name%0A++++++++self.giveRaise((age+-+18)+*+0.03)%0A%0A++++def+salutation(self)%3A%0A++++++++return+self.role+%2B+'+'+%2B+self.name%0A%0Apat+%3D+Prof601('Pat',+60)&mode=display&cumulative=false&py=2&curInstr=16">Click here for an example.</a>
 
-This project involves cleaning up the execution trace so that object-oriented programs look
-sensible when visualized.
+Think about how annotations can "clean up" such a big and hairy visualization.
 
 
-## Add better Unicode support (medium)
+### Web-based authoring environment
 
-This project is a great fit for someone familiar with coding in non-English languages.
+With a proper Web-based authoring environment, teachers and students can use
+Online Python Tutor visualizations as the basis for annotated examples,
+programming exercises, and quizzes.
 
-Right now, OPT has poor-to-nonexistent Unicode support, so adding it is important for making it friendlier to
-non-English audiences.
+As a start, I've implemented a prototype of "annotation bubbles" for fine-grained annotation of visualization elements:
 
-Here is one bug report that inspired this project idea:
-
-"""
-I’m having some fun with your nifty Python visualiser.
-While trying too see what happens in Unicode strings are processed,
-I encountered some odd little quirks such as a unicode character
-being replace with a string representation of a Unicode code point
-number in denary.
+![annotation bubbles](../opt-annotations.png)
 
 
-<a href="http://www.pythontutor.com/visualize.html#code=s+%3D+unicode(0x2015)%0Aa+%3D+'Myer'+%2B+s+%2B+'Briggs'%0Ax+%3D+a.index(s)%0Al+%3D+a%5B%3Ax%5D%0Ar+%3D+a%5Bx+%2B+len(s)%3A%5D%0Aprint+l%0Aprint+r%0Aprint+'%22'+%2B+a+%2B+'%22+is+'+%2B+str(len(a))+%2B+'+characters+long.'%0Afor+i,+z+in+unumerate(a)%3A%0A++print+'a%5B'+%2B+str(i)+%2B+'%5D+%3D+'+%2B+str(z)&mode=display&cumulative=false&py=2&curInstr=8">click to visualize code snippet</a>
+**Annotated code visualizations**:
 
-Changing the first line to
-
-```python
-s = u'\u2015'
-```
-
-Causes an “unknown error” to be reported, as does the insertion of unicode characters like “—” (em dash) in string literals.
-
-The following code causes the interpreter to hang.
-```python
-# -*- coding: utf-8 -*-
-s = u'—'
-```
-"""
-
-(Note that Unicode support in Python 2 and 3 involve different subtleties.)
+- Teachers could use it as a place to put their code examples and mini-lessons (so that they’re persistent, rather than sending out a bunch of gross URLs)
+  - Lesson text can be fine-grained -- e.g., specific text to accompany each execution point, or annotations atop individual objects.
+    - see the above screenshot for "annotation bubbles" prototype to label individual visualization elements
+  - Think about what asides or remarks would a teacher/mentor SAY OUT LOUD when stepping through code with a student/mentee. Those are probably the kinds of commentary that you'd want to put inside of visualizations.
+- Students could use it as a Stackoverflow-like forum for asking questions
+  - Potentially powerful use case in MOOCs where students can directly annotate visualizations while debugging and then fire off a question to a discussion forum (with all required context). Again, OPT will be embedded within a larger MOOC courseware environment and be a segue into discussion forums.
+  - With a lightweight authoring environment, OPT can be used for embedding read-write visualizations. When a student is viewing code visualizations embedded within a textbook or lesson, they can mark annotations for parts they don’t understand and then send off the link to the course staff or discussion forum. So in essence, they’re interacting with the visualization rather than just passively consuming it.
 
 
-## Create an OPT backend for a different programming language (hard)
+**Exercises/quizzes**: Since we have rich visualizations and interactivity at our disposal,
+we can come up with new forms of exercises that are more engaging than simply
+"write a function that does X and then passes these 10 unit tests."
+For example, one could imagine putting in blank slots as the user steps through the visualization,
+and the user would need to fill in those slots with the appropriate values. (There is already a
+not-yet-documented prototype of these sorts of pop-up questions, done by Brad Miller.)
+
+
+### Visualizing orders of growth
+
+Think about how to convey orders of growth of algorithms across data sets of varying sizes.
+
+Notes from Peter N.: {
+Peter suggested augmenting special data structure classes with callback hooks to the visualizer (like __str__ on steroids). This allows the visualizer to gracefully skip steps of the yucky internals of a data structure while just stepping through the significant parts. You can imagine instrumenting an Array class and visualizing compares, swaps, etc. for sorting algorithms.
+
+"Third, it would also be great to have a plot API, to plot the runtimes (or some other stat) as a function of input size N."
+
+"Fourth, while I have seen other algorithm systems where they annotate the code (by putting in annotations that say @step or something), I think we can get away without it.  For example, if the problem is sorting a list of integers, don't annotate the algorithm: just pass it an input that consists not of a list of ints, but rather an annotaed list of annotated ints.  An annotated lists increments a counter for every __getitem__ and __setitem__, and an annotated int increments a counter for every __lt__ and the like.  It won't survive malicious attacks, but it will work for all but the actively uncooperative users."
+
+We also talked about visualizing orders of growth of code, such as loops, nested loops, etc. by visualizing how many times things execute and then how that changes as your input size changes.
+}
+
+
+## Backend
+
+### Shared visualization sessions
+
+My main high-level vision for where to take the shared editing is the following:
+
+1. The instructor tells students to join a shared session.
+2. The instructor starts "driving" and typing code in the shared session. students watch along.
+3. At any time, a student can click a "detach" button and detach his/her session from the teacher. Then the session acts just like regular Online Python Tutor.
+4. At any time, a student can "reattach" to the shared session and follow the instructor again.
+
+The basic idea here is that students can follow along with an instructor but then "detach" at anytime to try out their own variations and experiments without interfering with other people's sessions.
+
+A related point/question is: what happens if two people try to simultaneously edit? i assume that they clobber each other's changes, right? in that case, it might be good to designate only ONE person who can edit, and everyone else just watches. or else a mischievous student can just delete everyone's code. of course, you can also have another "free-for-all" mode where everyone can edit.
+
+
+Another take on this idea:
+Adding real-time concurrent editing to these visualizations enables students to work together and tutor
+one another while physically separated. A shared workspace can also be useful during both physical and
+virtual lectures: As the instructor is lecturing using code visualizations, students can follow along by
+viewing those same running examples on their laptops. At any point when curious or confused, students can
+instantly diverge from the live example and try out their own variants
+on-the-fly in private; they can then sync back to the "live feed" at any time. Students can also text
+chat with one another about the lecture, all within the context of the live lecture materials. If students
+opt-in to allowing the instructor to access such interaction data, then that could "close the loop" and
+help the instructor improve future lectures. For instance, if 80% of students are silently diverging from
+the live example at a certain point in lecture, then perhaps that part requires further clarification.
+
+
+### Visualizing different programming languages (especially JavaScript!)
 
 This project is great for someone who likes to hack on language implementations and runtimes.
 
 The OPT frontend can visualize programs written in any mainstream language, not just Python.
 This project involves creating a backend for another language (e.g., Ruby, Java, JavaScript, C, C++, Scheme).
-All the backend needs to do is to generate an execution trace in the following format ...
+All the backend needs to do is to generate an execution trace in the following format:
 
 https://github.com/pgbovine/OnlinePythonTutor/blob/master/v3/docs/opt-trace-format.md
 
-... and the frontend should be able to visualize it!
+And the OPT frontend should be able to visualize it!
 
-For instance, the [Chicory Java trace generator for Daikon](http://groups.csail.mit.edu/pag/daikon/download/doc/daikon_manual_html/daikon_7.html#SEC69)
+In particular, I think a **JavaScript backend** would be amazing.
+By hacking the [narcissus](https://github.com/mozilla/narcissus) meta-circular JavaScript interpreter,
+you should be able to implement a JavaScript visualizer purely in the browser. You get the benefits of
+low latency, offline access, and no security concerns that plague traditional server-side apps. How cool is that?!?
+
+Check out backends that other people have already written:
+
+- [Online Java Tutor](http://cscircles.cemc.uwaterloo.ca/java_visualize/) by David Pritchard
+- [Online Ruby Tutor](http://www.onlinerubytutor.com/) by Daniel Stutzman
+- [Blockly + OPT](http://epleweb.appspot.com/) by Pier Giuliano Nioi
+
+Other misc. implementation notes:
+
+- The [Chicory Java trace generator for Daikon](http://groups.csail.mit.edu/pag/daikon/download/doc/daikon_manual_html/daikon_7.html#SEC69)
 might be a good basis for writing a Java backend for OPT. Or take a look at [jdb](http://docs.oracle.com/javase/1.3/docs/tooldocs/solaris/jdb.html), which
 should be similar to how Online Python Tutor uses Python's pdb module to generate traces.
 
-Also, my
-[master's thesis](http://pgbovine.net/projects/pubs/guo-mixedlevel-mengthesis.pdf) from 2006
+- My [master's thesis](http://pgbovine.net/projects/pubs/guo-mixedlevel-mengthesis.pdf) from 2006
 describes one possible technique for building a C-language backend based upon the [Valgrind](http://www.valgrind.org)
 tool. More importantly, it describes the difficulties involved in creating a robust execution
-trace generator for C and C++. It should be much easier to build a backend for a memory- and type-safe language, though :)
+trace generator for C and C++.
+It should be much easier to build a backend for a memory- and type-safe language, though :)
 
 
-## Migrate OPT backend to Skulpt (very hard but super cool!)
+### Skulpt (Python-in-JavaScript) backend
 
 This project is appropriate for someone with advanced knowledge of hacking a Python interpreter
 who is willing to make a substantive time commitment.
@@ -197,5 +288,40 @@ Tips & Tricks:
 
 Dec 2012: Brython -- http://www.brython.info/index_en.html -- might also be a contender here, since it supports lots of Python 3 (except for OOP, lambdas, exceptions, and generators, afaik).
 
-May 2013: The main caveat with re-implementing for one of these alternative Python implementations is that they don't support the full ("official") Python language.
+May 2013: In the experience of Python veterans, the main caveat with targeting one of these alternative Python implementations is that they don't support the full ("official") Python language.
 Thus, users might be frustrated that code they type into this tutor doesn't run exactly like code they type into the official Python interpreter.
+That said, though, a Skulpt implementation would still be useful, as long as users understand its limitations and caveats, and that it doesn't support the full Python language in all of its glory (or its weird edge-case behaviors).
+
+
+### Offline mode for use as a production debugger
+
+From a reader comment: "As a teaching tool it is invaluable, not only for teaching python, but for programming in general (what is going on in memory...).
+I've actively used it to debug / trace short pieces of code. Any chance of having it offline (and without the limitations of an online tool like the inability to load all modules)? That would make a perfect pdb visualization tool."
+
+You could imagine running a webserver on localhost and using OPT as a graphical frontend for pdb; interesting idea!
+
+Notes from an email I sent on 2012-10-24: {
+
+One possible offline application is to use OPT as a visual debugger for pdb (http://docs.python.org/library/pdb.html). The use case here would be:
+
+1.) The user launches a special version of pdb augmented with OPT.
+2.) The user types in some Python command to visualize.
+3.) pdb starts a local webserver and pops up a web browser window.
+4.) The visualization appears in the web browser window, and the user can interact with it.
+
+Actually, now that I think about it, you can start even simpler without pdb. Here is an even simpler starting point:
+
+1.) The user writes some code to visualize in a file on his/her computer.
+2.) The user runs a special Python script that runs OPT on that file, launches a local webserver, and pops open a web browser window.
+3.) The visualization appears in the web browser window.
+
+Ok, that seems simpler as a starting point, and it will still teach you about local webservers and interfacing between the OPT backend and frontend.
+
+Then comes the question of why this offline mode might be useful (beyond being a good learning exercise). After all, just by following the directions in the developer overview docs, you've essentially set up OPT to run offline without an Internet connection. So my plan above doesn't give you any extra functionality. However, I think the potential lies in integrating with a real debugger such as pdb, so that you can run large Python programs, pause execution, and then visualize selected data structures (rather than all data structures in the program, which can get overwhelming).
+
+Ok sorry that was mostly me thinking out loud.
+
+}
+
+Ha, I guess you can call this **"Offline Python Tutor"**!
+
