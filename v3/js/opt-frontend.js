@@ -53,13 +53,13 @@ var myVisualizer = null; // singleton ExecutionVisualizer instance
 // set keyboard bindings
 $(document).keydown(function(k) {
   //if (!keyStuckDown) {
-  if (k.keyCode == 37) { // left arrow
+  if (myVisualizer != null && k.keyCode == 37) { // left arrow
     if (myVisualizer.stepBack()) {
       k.preventDefault(); // don't horizontally scroll the display
       keyStuckDown = true;
     }
   }
-  else if (k.keyCode == 39) { // right arrow
+  else if (myVisualizer != null && k.keyCode == 39) { // right arrow
     if (myVisualizer.stepForward()) {
       k.preventDefault(); // don't horizontally scroll the display
       keyStuckDown = true;
