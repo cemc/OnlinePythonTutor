@@ -131,6 +131,16 @@ function ExecutionVisualizer(domRootID, dat, params) {
     }
   }
 
+  this.hasStdout = ((this.curTrace.length > 0) 
+                    && this.curTrace[this.curTrace.length-1]
+                    && this.curTrace[this.curTrace.length-1].stdout);
+  
+  if (this.hasStdout) {
+    this.stdoutLines = this.curTrace[this.curTrace.length-1].stdout.split("\n").length;
+  }
+  else 
+    this.stdoutLines = -1;
+
   this.curInstr = 0;
 
   this.params = params;
@@ -270,11 +280,13 @@ ExecutionVisualizer.prototype.render = function() {
        <div id="annotateLinkDiv"><button id="annotateBtn" type="button">Annotate this step</button></div>\
      </div>';
 
+  var outputRows = Math.min(10, myViz.stdoutLines);
+
   var outputsHTML =
     '<div id="htmlOutputDiv"></div>\
      <div id="progOutputs">\
        Program output:<br/>\
-       <textarea id="pyStdout" cols="50" rows="10" wrap="off" readonly></textarea>\
+       <textarea id="pyStdout" cols="50" rows="'+outputRows+'" wrap="off" readonly></textarea>\
      </div>';
 
   var codeVizHTML =
@@ -1461,7 +1473,7 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
 
   // if there isn't anything in curEntry.stdout, don't even bother
   // displaying the pane
-  if (curEntry.stdout) {
+  if (myViz.hasStdout) {
     this.domRoot.find('#progOutputs').show();
 
     // keep original horizontal scroll level:
