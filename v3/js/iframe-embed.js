@@ -44,6 +44,23 @@ var python3_backend_script = '../../../csc_optv3.php';
 
 var myVisualizer = null; // singleton ExecutionVisualizer instance
 
+// set keyboard bindings
+$(document).keydown(function(k) {
+  //if (!keyStuckDown) {
+  if (k.keyCode == 37) { // left arrow
+    if (myVisualizer.stepBack()) {
+      k.preventDefault(); // don't horizontally scroll the display
+      keyStuckDown = true;
+    }
+  }
+  else if (k.keyCode == 39) { // right arrow
+    if (myVisualizer.stepForward()) {
+      k.preventDefault(); // don't horizontally scroll the display
+      keyStuckDown = true;
+    }
+  }});
+//}
+
 
 $(document).ready(function() {
   var preseededCode = $.bbq.getState('code');
@@ -163,20 +180,4 @@ $(document).ready(function() {
     }
   });
 
-    // set keyboard bindings
-    $(document).keydown(function(k) {
-        //if (!keyStuckDown) {
-        if (k.keyCode == 37) { // left arrow
-            if (myVisualizer.stepBack()) {
-                k.preventDefault(); // don't horizontally scroll the display
-                keyStuckDown = true;
-            }
-        }
-        else if (k.keyCode == 39) { // right arrow
-            if (myVisualizer.stepForward()) {
-                k.preventDefault(); // don't horizontally scroll the display
-                keyStuckDown = true;
-            }
-        }});
-    //}
 });
