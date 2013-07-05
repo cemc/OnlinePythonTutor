@@ -446,10 +446,12 @@ ExecutionVisualizer.prototype.render = function() {
     }});
 
   if (this.params.codeDivWidth) {
+    // set width once
     this.domRoot.find('#codeDisplayDiv').width(
       this.params.codeDivWidth);
+    // it will propagate to the slider
   }
-  
+
   if (this.params.codeDivHeight) {
     this.domRoot.find('#pyCodeOutputDiv')
       .css('max-height', this.params.codeDivHeight + 'px');
@@ -1531,9 +1533,6 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
     }
   }
 
-  if (this.params.updateOutputCallback) {
-    this.params.updateOutputCallback(this);
-  }
 } // end of updateOutput
 
 

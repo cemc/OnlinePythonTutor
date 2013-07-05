@@ -97,6 +97,7 @@ $(document).ready(function() {
   }
 
 
+  // David Pritchard's code for resizeContainer option ...
   var resizeContainer = ($.bbq.getState('resizeContainer') == 'true');
     
   if (resizeContainer) {
@@ -116,7 +117,6 @@ $(document).ready(function() {
       function resizeContainerNow() {
           $(container).height($("#vizDiv").height()+20);
       };
-
   }
 
       
@@ -159,9 +159,25 @@ $(document).ready(function() {
                                                     textualMemoryLabels: textRefsBool,
                                                     showOnlyOutputs: showOnlyOutputsBool,
                                                     highlightLines: typeof $.bbq.getState("highlightLines") !== "undefined",
-                                                    updateOutputCallback: resizeContainerNow,
+                                                    updateOutputCallback: (resizeContainer ? resizeContainerNow : null)
                                                    });
-            if (resizeContainer) resizeContainerNow();
+
+            // set keyboard bindings
+            // VERY IMPORTANT to clear and reset this every time or
+            // else the handlers might be bound multiple times
+            $(document).unbind('keydown');
+            $(document).keydown(function(k) {
+              if (k.keyCode == 37) { // left arrow
+                if (myVisualizer.stepBack()) {
+                  k.preventDefault(); // don't horizontally scroll the display
+                }
+              }
+              else if (k.keyCode == 39) { // right arrow
+                if (myVisualizer.stepForward()) {
+                  k.preventDefault(); // don't horizontally scroll the display
+                }
+              }
+            });
           }
         },
         "json");

@@ -50,29 +50,6 @@ var rawInputLst = []; // a list of strings inputted by the user in response to r
 
 var myVisualizer = null; // singleton ExecutionVisualizer instance
 
-// set keyboard bindings
-$(document).keydown(function(k) {
-  //if (!keyStuckDown) {
-  if (myVisualizer != null && k.keyCode == 37) { // left arrow
-    if (myVisualizer.stepBack()) {
-      k.preventDefault(); // don't horizontally scroll the display
-      keyStuckDown = true;
-    }
-  }
-  else if (myVisualizer != null && k.keyCode == 39) { // right arrow
-    if (myVisualizer.stepForward()) {
-      k.preventDefault(); // don't horizontally scroll the display
-      keyStuckDown = true;
-    }
-  }
-  //}
-});
-
-$(document).keyup(function(k) {
-  keyStuckDown = false;
-});
-
-var keyStuckDown = false;
 
 function enterEditMode() {
   $.bbq.pushState({ mode: 'edit' }, 2 /* completely override other hash strings to keep URL clean */);
@@ -248,7 +225,25 @@ $(document).ready(function() {
                                                         highlightLines: true
                                                         //allowEditAnnotations: true,
                                                        });
-                  
+
+
+                // set keyboard bindings
+                // VERY IMPORTANT to clear and reset this every time or
+                // else the handlers might be bound multiple times
+                $(document).unbind('keydown');
+                $(document).keydown(function(k) {
+                  if (k.keyCode == 37) { // left arrow
+                    if (myVisualizer.stepBack()) {
+                      k.preventDefault(); // don't horizontally scroll the display
+                    }
+                  }
+                  else if (k.keyCode == 39) { // right arrow
+                    if (myVisualizer.stepForward()) {
+                      k.preventDefault(); // don't horizontally scroll the display
+                    }
+                  }
+                });
+
                 // also scroll to top to make the UI more usable on smaller monitors
                 $(document).scrollTop(0);
 
