@@ -287,7 +287,7 @@ ExecutionVisualizer.prototype.render = function() {
     '<div id="htmlOutputDiv"></div>\
      <div id="progOutputs">\
        Program output:<br/>\
-       <textarea id="pyStdout" cols="50" rows="'+outputRows+'" wrap="off" readonly></textarea>\
+       <textarea id="pyStdout" cols="1" rows="'+outputRows+'" wrap="off" readonly></textarea>\
      </div>';
 
   var codeVizHTML =
@@ -436,26 +436,18 @@ ExecutionVisualizer.prototype.render = function() {
   }
 
   // enable left-right draggable pane resizer (originally from David Pritchard)
-  var syncStdoutWidth = function(event, ui){
-    $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));
-    $("#codeDisplayDiv").css("height", "auto"); //redetermine height if necessary
-    if (myViz.params.updateOutputCallback) 
-      myViz.params.updateOutputCallback(this);
-  };
-
-  $('#codeDisplayDiv').resizable({handles:"e", resize: syncStdoutWidth});
+  $('#codeDisplayDiv').resizable({
+    handles: "e", 
+    minWidth: 100, //otherwise looks really goofy
+    resize: function(event, ui){ // old name: syncStdoutWidth, now not appropriate
+      $("#codeDisplayDiv").css("height", "auto"); // redetermine height if necessary
+      if (myViz.params.updateOutputCallback) // report size change
+        myViz.params.updateOutputCallback(this);
+    }});
 
   if (this.params.codeDivWidth) {
-    // set width once
     this.domRoot.find('#codeDisplayDiv').width(
       this.params.codeDivWidth);
-    // it will propagate to the slider
-
-    syncStdoutWidth(null, {size: {width: this.params.codeDivWidth}});
-  }
-  else {
-    // set up a temporary pretty-close width
-    this.domRoot.find('#pyStdout').css({"width": "100%"});
   }
   
   if (this.params.codeDivHeight) {

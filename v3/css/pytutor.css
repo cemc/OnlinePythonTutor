@@ -213,6 +213,8 @@ div.ExecutionVisualizer #pyStdout {
 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
+  width: 100%;
 }
 
 
