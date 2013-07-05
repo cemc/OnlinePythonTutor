@@ -437,7 +437,11 @@ ExecutionVisualizer.prototype.render = function() {
 
   // enable left-right draggable pane resizer (originally from David Pritchard)
   var syncStdoutWidth = function(event, ui){
-    $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));};
+    $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));
+    $("#codeDisplayDiv").css("height", "auto"); //redetermine height if necessary
+    if (myViz.params.updateOutputCallback) 
+      myViz.params.updateOutputCallback(this);
+  };
 
   $('#codeDisplayDiv').resizable({handles:"e", resize: syncStdoutWidth});
 
@@ -451,7 +455,7 @@ ExecutionVisualizer.prototype.render = function() {
   }
   else {
     // set up a temporary pretty-close width. not sure how to determine to-be-rendered codeDisplayDiv width
-    this.domRoot.find('#pyStdout').css("width", "100%");
+    this.domRoot.find('#pyStdout').css({"width": "95%"});
   }
   
   if (this.params.codeDivHeight) {
@@ -1535,8 +1539,8 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
     }
   }
 
-  if (this.updateOutputCallback) {
-    this.updateOutputCallback();
+  if (this.params.updateOutputCallback) {
+    this.params.updateOutputCallback(this);
   }
 } // end of updateOutput
 
