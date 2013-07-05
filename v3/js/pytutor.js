@@ -454,7 +454,7 @@ ExecutionVisualizer.prototype.render = function() {
     syncStdoutWidth(null, {size: {width: this.params.codeDivWidth}});
   }
   else {
-    // set up a temporary pretty-close width. not sure how to determine to-be-rendered codeDisplayDiv width
+    // set up a temporary pretty-close width
     this.domRoot.find('#pyStdout').css({"width": "100%"});
   }
   
