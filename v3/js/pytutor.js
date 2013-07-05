@@ -445,8 +445,8 @@ ExecutionVisualizer.prototype.render = function() {
   }
 
   // enable left-right draggable pane resizer (originally from David Pritchard)
-  $('#pyCodeOutputDiv,#codeDisplayDiv,#pyStdout').css({"max-width":"inherit"});
-  $('#executionSlider').css({"width":"95%"});
+/*  $('#pyCodeOutputDiv,#codeDisplayDiv,#pyStdout').css({"max-width":"inherit"});
+  $('#executionSlider').css({"width":"95%"});*/
 
   var syncStdoutWidth = function(event, ui){
     $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));};
