@@ -696,10 +696,9 @@ div.ExecutionVisualizer div#vizHeader {
 }
 
 div.ExecutionVisualizer .ui-resizable-e {
-  background-color: #DDDDFF;
+  background-color: #cccccc;
+  width: 1px;
   border: 3px solid white;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
 }
 
 div.ExecutionVisualizer .ui-resizable-e:hover {

@@ -435,21 +435,25 @@ ExecutionVisualizer.prototype.render = function() {
     this.domRoot.find('#jmpLastInstr').hide();
   }
 
+  // enable left-right draggable pane resizer (originally from David Pritchard)
+  var syncStdoutWidth = function(event, ui){
+    $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));};
+
+  $('#codeDisplayDiv').resizable({handles:"e", resize: syncStdoutWidth});
 
   if (this.params.codeDivWidth) {
     // set width once
     this.domRoot.find('#codeDisplayDiv').width(
       this.params.codeDivWidth);
     // it will propagate to the slider
+
+    syncStdoutWidth(null, {size: {width: this.params.codeDivWidth}});
   }
-
-  // enable left-right draggable pane resizer (originally from David Pritchard)
-  var syncStdoutWidth = function(event, ui){
-    $("#vizLayoutTdFirst #pyStdout").width(ui.size.width-2*parseInt($("#pyStdout").css("padding-left")));};
-  $('#codeDisplayDiv').resizable({handles:"e", resize: syncStdoutWidth});
-  syncStdoutWidth(null, {size: {width: $('#codeDisplayDiv').width()}});
-
-
+  else {
+    // set up a temporary pretty-close width. not sure how to determine to-be-rendered codeDisplayDiv width
+    this.domRoot.find('#pyStdout').css("width", "100%");
+  }
+  
   if (this.params.codeDivHeight) {
     this.domRoot.find('#pyCodeOutputDiv')
       .css('max-height', this.params.codeDivHeight + 'px');
