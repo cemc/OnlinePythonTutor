@@ -436,7 +436,7 @@ ExecutionVisualizer.prototype.render = function() {
   }
 
   // enable left-right draggable pane resizer (originally from David Pritchard)
-  $('#codeDisplayDiv').resizable({
+  this.domRoot.find('#codeDisplayDiv').resizable({
     handles: "e", 
     minWidth: 100, //otherwise looks really goofy
     resize: function(event, ui){ // old name: syncStdoutWidth, now not appropriate

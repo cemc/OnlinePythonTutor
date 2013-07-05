@@ -62,7 +62,7 @@ div.ExecutionVisualizer #dataViz {
 
 div.ExecutionVisualizer div#codeDisplayDiv {
   /* set this as default unless user specifies a custom size */
-  /*width: 550px;*/ /* actually, fit to code instead
+  /*width: 550px;*/
 }
 
 div.ExecutionVisualizer div#pyCodeOutputDiv {
