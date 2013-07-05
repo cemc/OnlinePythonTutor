@@ -149,8 +149,8 @@ function ExecutionVisualizer(domRootID, dat, params) {
     this.params = {}; // make it an empty object by default
   }
 
-  var arrowLinesDef = (params.arrowLines !== undefined);
-  var highlightLinesDef = (params.highlightLines !== undefined);
+  var arrowLinesDef = (this.params.arrowLines !== undefined);
+  var highlightLinesDef = (this.params.highlightLines !== undefined);
 
   if (!arrowLinesDef && !highlightLinesDef) {
       // neither is set
