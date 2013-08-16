@@ -65,6 +65,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 <body>
 
+<p style="text-align: center;">
+<a href="<?php echo cscurl('homepage'); ?>">Computer Science Circles Homepage</a> 
+ | 
+<a href="<?php echo cscurl('contact'); ?>">Contact Us</a>
+</p>
+
 <div id="pyInputPane">
 
 Write your Python code here:
