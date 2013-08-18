@@ -197,6 +197,8 @@ BANNED_BUILTINS = ['reload', 'open', 'compile',
 if not is_python3:
   BANNED_BUILTINS.append('input')
 
+BANNED_BUILTINS = []
+
 
 IGNORE_VARS = set(('__user_stdout__', '__builtins__', '__name__', '__exception__', '__doc__', '__package__'))
 
@@ -965,14 +967,15 @@ class PGLogger(bdb.Bdb):
             continue
           elif k == '__import__':
             user_builtins[k] = __restricted_import__
+#          else:
+#            if k == 'raw_input':
+#              user_builtins[k] = raw_input_wrapper
+#            elif k == 'input' and is_python3:
+#              # Python 3 input() is Python 2 raw_input()
+#              # user_builtins[k] = raw_input_wrapper
+#              pass
           else:
-            if k == 'raw_input':
-              user_builtins[k] = raw_input_wrapper
-            elif k == 'input' and is_python3:
-              # Python 3 input() is Python 2 raw_input()
-              user_builtins[k] = raw_input_wrapper
-            else:
-              user_builtins[k] = v
+            user_builtins[k] = v
 
         user_builtins['mouse_input'] = mouse_input_wrapper
 
@@ -1110,7 +1113,7 @@ def exec_script_str(script_str, raw_input_lst_json, options_json, finalizer_func
   # TODO: refactor these NOT to be globals
   global input_string_queue
   input_string_queue = []
-  if raw_input_lst_json:
+  if False and raw_input_lst_json:
     # TODO: if we want to support unicode, remove str() cast
     input_string_queue = [str(e) for e in json.loads(raw_input_lst_json)]
 
@@ -1134,7 +1137,7 @@ def exec_script_str_local(script_str, raw_input_lst_json, cumulative_mode, heap_
   # TODO: refactor these NOT to be globals
   global input_string_queue
   input_string_queue = []
-  if raw_input_lst_json:
+  if False and raw_input_lst_json:
     # TODO: if we want to support unicode, remove str() cast
     input_string_queue = [str(e) for e in json.loads(raw_input_lst_json)]
 
