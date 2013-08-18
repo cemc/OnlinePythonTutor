@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // uncomment below if you're running on Google App Engine using the built-in app.yaml
 var python2_backend_script = 'exec';
-var python3_backend_script = '../../../csc_optv3.php';
+var python3_backend_script = '../../action-optv3.php';
 
 var appMode = 'edit'; // 'edit', 'display', or 'display_no_frills'
 
@@ -158,11 +158,11 @@ $(document).ready(function() {
       // set up all options in a JS object
       var options = {cumulative_mode: ($('#cumulativeModeSelector').val() == 'true'),
                      heap_primitives: ($('#heapPrimitivesSelector').val() == 'true'),
-                     show_only_outputs: ($('#showOnlyOutputsSelector').val() == 'true')};
+                     show_only_outputs: ($('#showOnlyOutputsSelector').val() == 'true'),};
 
       $.get(backend_script,
             {user_script : pyInputCodeMirror.getValue(),
-             raw_input_json: rawInputLst.length > 0 ? JSON.stringify(rawInputLst) : '',
+             raw_input_json : $('#stdinPane')[0].value,
              options_json: JSON.stringify(options)},
             function(dataFromBackend) {
               var trace = dataFromBackend.trace;
@@ -507,8 +507,11 @@ $(document).ready(function() {
   }
   else {
     // select a canned example on start-up:
-    $("#aliasExampleLink").trigger('click');
+    // $("#aliasExampleLink").trigger('click');
   }
+
+  if ($.bbq.getState('raw_input'))
+    window.stdinPane.value = $.bbq.getState('raw_input');
 
   // parse query string options ...
   // ugh, ugly tristate due to the possibility of them being undefined
@@ -575,12 +578,13 @@ $(document).ready(function() {
   $('#genUrlBtn').bind('click', function() {
     var myArgs = {code: pyInputCodeMirror.getValue(),
                   mode: appMode,
-                  cumulative: $('#cumulativeModeSelector').val(),
-                  heapPrimitives: $('#heapPrimitivesSelector').val(),
-                  drawParentPointers: $('#drawParentPointerSelector').val(),
-                  textReferences: $('#textualMemoryLabelsSelector').val(),
-                  showOnlyOutputs: $('#showOnlyOutputsSelector').val(),
-                  py: $('#pythonVersionSelector').val()};
+                  //cumulative: $('#cumulativeModeSelector').val(),
+                  //heapPrimitives: $('#heapPrimitivesSelector').val(),
+                  //drawParentPointers: $('#drawParentPointerSelector').val(),
+                  //textReferences: $('#textualMemoryLabelsSelector').val(),
+                  //showOnlyOutputs: $('#showOnlyOutputsSelector').val(),
+                  //py: $('#pythonVersionSelector').val()
+                  raw_input: window.stdinPane.value};
 
     if (appMode == 'display') {
       myArgs.curInstr = myVisualizer.curInstr;
