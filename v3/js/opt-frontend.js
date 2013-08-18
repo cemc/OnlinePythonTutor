@@ -83,7 +83,7 @@ $(document).ready(function() {
     extraKeys: {Tab: function(cm) {cm.replaceSelection("    ", "end");}}
   });
 
-  pyInputCodeMirror.setSize(null, '420px');
+  pyInputCodeMirror.setSize(null, '240px');
 
 
 
