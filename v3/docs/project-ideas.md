@@ -71,11 +71,14 @@ such as:
 - rendering lists of numbers as bar/line graphs, charts, and other quantitative data visualizations (e.g., using Google Charts API)
 - file objects
 - DSL components such as logic gates for a logic simulator written in Python, or proof trees for formal logic courses
- 
+- compiler data structures such as parser states, parse tables, AST construction, code generators, etc.
+- relational algebra diagrams for database courses
+- embedded image files (e.g., inline PNG images) to visualize Guzdial et al.'s [Media Computation](http://coweb.cc.gatech.edu/mediaComp-teach) algorithms online
+
 These renderers will make Online Python Tutor useful in a far larger variety of CS courses and online textbooks
 beyond CS0/CS1 sorts of intro classes.
 
-One ultimate goal is to make OPT capable of visualizing classic AI and algorithm textbook algorithms
+One ultimate goal is to make OPT capable of visualizing classic AI, algorithm, and compiler textbook algorithms
 that otherwise would need to be tediously built as one-off special-case visualizations.
 
 From an email excerpt in May 2013: {
@@ -172,6 +175,8 @@ programming exercises, and quizzes.
 As a start, I've implemented a prototype of "annotation bubbles" for fine-grained annotation of visualization elements:
 
 ![annotation bubbles](../opt-annotations.png)
+
+[Try a mock-up here!](http://pythontutor.com/commentary-bubbles-demo.html)
 
 
 **Annotated code visualizations**:
@@ -329,51 +334,21 @@ and other internal guts aren't altered too much. But I don't care a ton about C 
 doesn't really use C modules. (Update in July 2013 -- it seems like hacks to CPython core data structures are
 intrusive enough to preclude C module object compatibility. But that's not a big deal.)
 
-In early July 2013, I made some initial steps toward this goal as a proof-of-concept and am fairly encouraged by
-my findings so far. To support this finer-grained intra-line stepping, I hacked CPython 2.7.5 to:
 
-1. call the trace function at each bytecode rather than each time a new line is executed, which turns it into a bytecode-level stepper
-2. disable the peephole optimizer so that bytecodes match source code more closely
-3. insert column number information along with line numbers in bytecode
+#### Early Prototype (July 2013)
 
-The trickest part was getting column number information into the code object.
-It turns out that the tokenizer, parser, and AST all keep column numbers,
-but only line numbers show up in bytecode (encoded in the cryptic lnotab string).
-After some hair-pulling, I managed to add a new code.co_coltab dict that maps each
-bytecode instruction to a (line number, column number) pair.
+In early July 2013, I made some initial steps toward this goal as a proof-of-concept and am
+encouraged by my findings so far.
 
-Here's example disassembly from the following line (line 7 in source code) with line/column number mappings,
-and the corresponding point in the source code.
+[**Try the prototype now**](http://pythontutor.com/visualize.html#py=2crazy) by selecting
+"2.crazy" as the Python version.
 
-    Source code line 7:
-    "if foo() and (x + y > 7):"
+Specifically, try the prototype on a <a href="http://pythontutor.com/visualize.html#code=def+foo()%3A%0A++return+True%0A%0Ax+%3D+3%0Ay+%3D+5%0A%0Aif+foo()+and+(x+%2B+y+%3E+7)%3A%0A++print+'YES'%0Aelse%3A%0A++print+'NO'&mode=display&cumulative=false&heapPrimitives=false&drawParentPointers=false&textReferences=false&showOnlyOutputs=false&py=2crazy&curInstr=0"><b>simple example</b></a>.
 
-    (7, 3)          21 LOAD_NAME                0 (foo)  if foo() and (x + y > 7):
-                                                            ^
-    (7, 3)          24 CALL_FUNCTION            0        if foo() and (x + y > 7):
-                                                            ^
-    (7, 3)          27 JUMP_IF_FALSE_OR_POP    43        if foo() and (x + y > 7):
-                                                            ^
-    (7, 14)         30 LOAD_NAME                1 (x)    if foo() and (x + y > 7):
-                                                                       ^
-    (7, 18)         33 LOAD_NAME                2 (y)    if foo() and (x + y > 7):
-                                                                           ^
-    (7, 16)         36 BINARY_ADD                        if foo() and (x + y > 7):
-                                                                         ^
-    (7, 22)         37 LOAD_CONST               3 (7)    if foo() and (x + y > 7):
-                                                                               ^
-    (7, 20)         40 COMPARE_OP               4 (>)    if foo() and (x + y > 7):
-                                                                             ^
-    (7, 20)    >>   43 POP_JUMP_IF_FALSE       54        if foo() and (x + y > 7):
-                                                                             ^
+And see the underlying [Py2crazy](https://github.com/pgbovine/Py2crazy/) project for more details.
 
-
-With this extended bytecode format, I can extend Online Python Tutor to point
-not only to the line being executed, but also to the column, which gives finer-grained tracing for instructors.
-
-The column number precision isn't perfect for all kinds of expressions, but it's still better than having 
-no column numbers. For instance, it's not precise for chained comparisons (`x < y < z < w`),
-field accesses (`foo.bar.baz`), and probably subscripting.
+Note that the (approximate) tokens corresponding to the
+currently-executing bytecode instruction is highlighed are yellow.
 
 In short, I think that with enough elbow grease to hack on CPython innards,
 you can get pretty good line/column number information into bytecodes;
