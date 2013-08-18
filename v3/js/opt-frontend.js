@@ -158,11 +158,11 @@ $(document).ready(function() {
       // set up all options in a JS object
       var options = {cumulative_mode: ($('#cumulativeModeSelector').val() == 'true'),
                      heap_primitives: ($('#heapPrimitivesSelector').val() == 'true'),
-                     show_only_outputs: ($('#showOnlyOutputsSelector').val() == 'true')};
+                     show_only_outputs: ($('#showOnlyOutputsSelector').val() == 'true'),};
 
       $.get(backend_script,
             {user_script : pyInputCodeMirror.getValue(),
-             raw_input_json: rawInputLst.length > 0 ? JSON.stringify(rawInputLst) : '',
+             raw_input_json : $('#stdinPane')[0].value,
              options_json: JSON.stringify(options)},
             function(dataFromBackend) {
               var trace = dataFromBackend.trace;
@@ -507,7 +507,7 @@ $(document).ready(function() {
   }
   else {
     // select a canned example on start-up:
-    $("#aliasExampleLink").trigger('click');
+    // $("#aliasExampleLink").trigger('click');
   }
 
   // parse query string options ...
