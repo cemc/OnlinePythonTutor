@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // uncomment below if you're running on Google App Engine using the built-in app.yaml
 var python2_backend_script = 'exec';
-var python3_backend_script = '../../../csc_optv3.php';
+var python3_backend_script = '../../action-optv3.php';
 
 var appMode = 'edit'; // 'edit', 'display', or 'display_no_frills'
 
@@ -510,6 +510,9 @@ $(document).ready(function() {
     // $("#aliasExampleLink").trigger('click');
   }
 
+  if ($.bbq.getState('raw_input'))
+    window.stdinPane.value = $.bbq.getState('raw_input');
+
   // parse query string options ...
   // ugh, ugly tristate due to the possibility of them being undefined
   var cumulativeState = $.bbq.getState('cumulative');
@@ -575,12 +578,13 @@ $(document).ready(function() {
   $('#genUrlBtn').bind('click', function() {
     var myArgs = {code: pyInputCodeMirror.getValue(),
                   mode: appMode,
-                  cumulative: $('#cumulativeModeSelector').val(),
-                  heapPrimitives: $('#heapPrimitivesSelector').val(),
-                  drawParentPointers: $('#drawParentPointerSelector').val(),
-                  textReferences: $('#textualMemoryLabelsSelector').val(),
-                  showOnlyOutputs: $('#showOnlyOutputsSelector').val(),
-                  py: $('#pythonVersionSelector').val()};
+                  //cumulative: $('#cumulativeModeSelector').val(),
+                  //heapPrimitives: $('#heapPrimitivesSelector').val(),
+                  //drawParentPointers: $('#drawParentPointerSelector').val(),
+                  //textReferences: $('#textualMemoryLabelsSelector').val(),
+                  //showOnlyOutputs: $('#showOnlyOutputsSelector').val(),
+                  //py: $('#pythonVersionSelector').val()
+                  raw_input: window.stdinPane.value};
 
     if (appMode == 'display') {
       myArgs.curInstr = myVisualizer.curInstr;
