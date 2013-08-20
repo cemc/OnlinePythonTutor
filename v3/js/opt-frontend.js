@@ -96,7 +96,7 @@ $(document).ready(function() {
     extraKeys: {Tab: function(cm) {cm.replaceSelection("    ", "end");}}
   });
 
-  pyInputCodeMirror.setSize(null, '240px');
+  //pyInputCodeMirror.setSize(null, '240px');
 
 
 
@@ -195,13 +195,14 @@ $(document).ready(function() {
                   if (errorLineNo !== undefined) {
                     // highlight the faulting line in pyInputCodeMirror
                     pyInputCodeMirror.focus();
-                    pyInputCodeMirror.setCursor(errorLineNo, 0);
-                    pyInputCodeMirror.setLineClass(errorLineNo, null, 'errorLine');
+                    
+                    var marked = pyInputCodeMirror.addLineClass(errorLineNo, null, 'errorLine');
+                    var hook = function(marked) { return function() {
+                      pyInputCodeMirror.removeLineClass(marked, null, 'errorLine'); // reset line back to normal
+                      pyInputCodeMirror.off('change', hook); // cancel
+                    }} (marked);
+                    pyInputCodeMirror.on('change', hook);
 
-                    pyInputCodeMirror.setOption('onChange', function() {
-                      pyInputCodeMirror.setLineClass(errorLineNo, null, null); // reset line back to normal
-                      pyInputCodeMirror.setOption('onChange', null); // cancel
-                    });
                   }
 
                   alert(trace[0].exception_msg);
