@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // uncomment below if you're running on Google App Engine using the built-in app.yaml
 var python2_backend_script = 'exec';
-var python3_backend_script = '../../../csc_optv3.php';
+var python3_backend_script = '../action-optv3.php'; // relative to iframe-embed.js
 
 
 var myVisualizer = null; // singleton ExecutionVisualizer instance
@@ -99,14 +99,15 @@ $(document).ready(function() {
       var container = findContainer();
       
       function resizeContainerNow() {
-          $(container).height($("#vizDiv").height()+20);
+          $(container).height($("html").height());
       };
   }
 
       
   $.get(backend_script,
         {user_script : preseededCode,
-         options_json: JSON.stringify(options)},
+         options_json: JSON.stringify(options),
+         iframe_mode: "Y"},
         function(dataFromBackend) {
           var trace = dataFromBackend.trace;
 
@@ -133,6 +134,9 @@ $(document).ready(function() {
               startingInstruction = preseededCurInstr;
             }
 
+            var codeDivWidth = 350;
+            if ($.bbq.getState("width")) codeDivWidth = $.bbq.getState("width");
+
             myVisualizer = new ExecutionVisualizer('vizDiv',
                                                    dataFromBackend,
                                                    {startingInstruction: preseededCurInstr,
@@ -144,7 +148,8 @@ $(document).ready(function() {
                                                     showOnlyOutputs: showOnlyOutputsBool,
                                                     highlightLines: typeof $.bbq.getState("highlightLines") !== "undefined",
                                                     pyCrazyMode: ($.bbq.getState('py') == '2crazy'),
-                                                    updateOutputCallback: (resizeContainer ? resizeContainerNow : null)
+                                                    heightChangeCallback: (resizeContainer ? resizeContainerNow : null),
+                                                    codeDivWidth: codeDivWidth
                                                    });
 
             // set keyboard bindings
@@ -163,6 +168,13 @@ $(document).ready(function() {
                 }
               }
             });
+
+            if ($.bbq.getState('rightStdout')) {
+              $("#progOutputs").appendTo("#dataViz");
+            }
+
+            if (resizeContainer) resizeContainerNow();
+
           }
         },
         "json");
@@ -180,6 +192,6 @@ $(document).ready(function() {
       myVisualizer.redrawConnectors();
     }
   });
-
+  
 });
 
