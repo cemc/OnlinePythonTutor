@@ -88,12 +88,21 @@ $(document).ready(function() {
   $("#embedLinkDiv").hide();
 
   pyInputCodeMirror = CodeMirror(document.getElementById('codeInputPane'), {
-    mode: 'python',
-    lineNumbers: true,
-    tabSize: 4,
-    indentUnit: 4,
-    // convert tab into four spaces:
-    extraKeys: {Tab: function(cm) {cm.replaceSelection("    ", "end");}}
+    mode: 
+    {name: "python", 
+     version: 3, 
+     singleLineStringErrors: false
+    }, 
+    lineNumbers: true, 
+    indentUnit: 3,
+    tabSize: 3,
+    matchBrackets: true,
+    extraKeys: {
+      Tab: function(cm) {
+        var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+        cm.replaceSelection(spaces, "end", "+input");
+      }
+    }
   });
 
   //pyInputCodeMirror.setSize(null, '240px');
