@@ -37,6 +37,14 @@ ranging from smartphones to tablets to laptops to giant desktop monitors.
 
 ## Frontend
 
+### IPython Notebook integration
+
+It would be awesome to integrate OPT with the [IPython Notebook](http://ipython.org/notebook.html) so that visualizations
+can be displayed inline within a notebook using, say, a `%visualize` magic keyword.
+
+In late 2012, I started messing around with a prototype but didn't get too far.
+
+
 ### Rich user input widgets
 
 Right now Online Python Tutor takes only code as input. However, it would be great to create widgets that allow
@@ -241,6 +249,10 @@ opt-in to allowing the instructor to access such interaction data, then that cou
 help the instructor improve future lectures. For instance, if 80% of students are silently diverging from
 the live example at a certain point in lecture, then perhaps that part requires further clarification.
 
+**Update in Sept 2013**: I've created a first prototype integrating the [IPython shell with OPT](https://github.com/pgbovine/OnlinePythonTutor/blob/master/v3/opt-ipy.py).
+
+Watch this [YouTube video demo](http://www.youtube.com/watch?v=y3sVN7uaxDM) for an example of shared sessions.
+
 
 ### Visualizing different programming languages (especially JavaScript!)
 
@@ -261,6 +273,7 @@ low latency, offline access, and no security concerns that plague traditional se
 
 Check out backends that other people have already written:
 
+- [Online JavaScript Tutor](http://jstutor.herokuapp.com/) by Hung Doan
 - [Online Java Tutor](http://cscircles.cemc.uwaterloo.ca/java_visualize/) by David Pritchard
 - [Online Ruby Tutor](http://www.onlinerubytutor.com/) by Daniel Stutzman
 - [Blockly + OPT](http://epleweb.appspot.com/) by Pier Giuliano Nioi
