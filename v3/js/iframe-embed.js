@@ -34,9 +34,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // should all be imported BEFORE this file
 
 
-var python2_backend_script = 'exec';
-var python3_backend_script = '../action-optv3.php'; // relative to iframe-embed.js
-
 var myVisualizer = null; // singleton ExecutionVisualizer instance
 
 
@@ -105,7 +102,7 @@ $(document).ready(function() {
       var container = findContainer();
       
       function resizeContainerNow() {
-          $(container).height($("html").height());
+        $(container).height($("html").height());
       };
   }
 
@@ -124,7 +121,7 @@ $(document).ready(function() {
                             textualMemoryLabels: textRefsBool,
                             showOnlyOutputs: showOnlyOutputsBool,
                             executeCodeWithRawInputFunc: executeCodeWithRawInput,
-                            updateOutputCallback: (resizeContainer ? resizeContainerNow : null),
+                            heightChangeCallback: (resizeContainer ? resizeContainerNow : NOP),
 
                             // undocumented experimental modes:
                             pyCrazyMode: (pyState == '2crazy'),
@@ -141,7 +138,14 @@ $(document).ready(function() {
                       backend_script, backendOptionsObj,
                       frontendOptionsObj,
                       'vizDiv',
-                      NOP, NOP);
+                      function() { // success
+                        if ($.bbq.getState('rightStdout')) {
+                          $("#progOutputs").appendTo("#dataViz");
+                        };
+                        if (resizeContainer)
+                          resizeContainerNow();
+                      }, 
+                      NOP);
   }
 
 
@@ -170,10 +174,6 @@ $(document).ready(function() {
   });
 
   executeCodeFromScratch(); // finally, execute code and display visualization
-
-  if ($.bbq.getState('rightStdout')) {
-    $("#progOutputs").appendTo("#dataViz");
-  };
 
 });
 

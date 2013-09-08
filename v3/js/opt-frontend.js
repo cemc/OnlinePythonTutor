@@ -27,9 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-var python2_backend_script = 'exec';
-var python3_backend_script = '../../action-optv3.php';
-var python2crazy_backend_script = 'web_exec_py2-crazy.py';
 
 // Pre-reqs:
 // - pytutor.js

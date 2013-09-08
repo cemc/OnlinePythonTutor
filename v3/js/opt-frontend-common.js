@@ -41,19 +41,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //var python2_backend_script = 'web_exec_py2.py';
 //var python3_backend_script = 'web_exec_py3.py';
 
-// uncomment below if you're running on Google App Engine using the built-in app.yaml
-var python2_backend_script = 'exec';
-var python3_backend_script = null;
-
-// KRAZY experimental KODE!!! Use a custom hacked CPython interpreter
-var python2crazy_backend_script = 'web_exec_py2-crazy.py';
-// On Google App Engine, simply run dev_appserver.py with the
-// crazy custom py2crazy CPython interpreter to get 2crazy mode
-//var python2crazy_backend_script = 'exec';
-
-
-var domain = "http://pythontutor.com/"; // for deployment
-//var domain = "http://localhost:8080/"; // for Google App Engine local testing
 
 
 var rawInputLst = []; // a list of strings inputted by the user in response to raw_input or mouse_input events
@@ -70,6 +57,7 @@ function getQueryStringOptions() {
   var textRefs = $.bbq.getState('textReferences');
   var showOnlyOutputs = $.bbq.getState('showOnlyOutputs');
   var cumulativeState = $.bbq.getState('cumulative');
+  var raw_input = $.bbq.getState('raw_input');
 
   return {preseededCode: preseededCode,
           preseededCurInstr: preseededCurInstr,
@@ -79,7 +67,8 @@ function getQueryStringOptions() {
           drawParentPointers: drawParentPointers,
           textRefs: textRefs,
           showOnlyOutputs: showOnlyOutputs,
-          cumulativeState: cumulativeState};
+          cumulativeState: cumulativeState,
+          raw_input: raw_input};
 }
 
 
