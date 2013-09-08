@@ -105,7 +105,7 @@ else:
 
 # whitelist of module imports
 ALLOWED_STDLIB_MODULE_IMPORTS = ('math', 'random', 'datetime',
-                          'functools', 'operator', 'string',
+                          'functools', 'itertools', 'operator', 'string',
                           'collections', 're', 'json',
                           'heapq', 'bisect')
 
@@ -119,6 +119,7 @@ CUSTOM_MODULE_IMPORTS = ('callback_module',
                          'html_module',
                          'watch_module',
                          'bintree_module',
+                         'htmlexample_module',
                          'GChartWrapper')
 
 
@@ -197,21 +198,35 @@ BANNED_BUILTINS = ['reload', 'open', 'compile',
 if not is_python3:
   BANNED_BUILTINS.append('input')
 
+BANNED_BUILTINS = []
+
 
 IGNORE_VARS = set(('__user_stdout__', '__builtins__', '__name__', '__exception__', '__doc__', '__package__'))
 
 def get_user_stdout(frame):
   return frame.f_globals['__user_stdout__'].getvalue()
 
-def get_user_globals(frame):
+# at_global_scope should be true only if 'frame' represents the global scope
+def get_user_globals(frame, at_global_scope=False):
   d = filter_var_dict(frame.f_globals)
+  # only present in crazy_mode ...
+  if at_global_scope and hasattr(frame, 'f_valuestack'):
+    for (i, e) in enumerate(frame.f_valuestack):
+      d['_tmp' + str(i+1)] = e
+
   # also filter out __return__ for globals only, but NOT for locals
   if '__return__' in d:
     del d['__return__']
   return d
 
 def get_user_locals(frame):
-  return filter_var_dict(frame.f_locals)
+  ret = filter_var_dict(frame.f_locals)
+  # only present in crazy_mode ...
+  if hasattr(frame, 'f_valuestack'):
+    for (i, e) in enumerate(frame.f_valuestack):
+      ret['_tmp' + str(i+1)] = e
+
+  return ret
 
 def filter_var_dict(d):
   ret = {}
@@ -275,7 +290,8 @@ def visit_function_obj(v, ids_seen_set):
 
 class PGLogger(bdb.Bdb):
 
-    def __init__(self, cumulative_mode, heap_primitives, show_only_outputs, finalizer_func, disable_security_checks=False):
+    def __init__(self, cumulative_mode, heap_primitives, show_only_outputs, finalizer_func,
+                 disable_security_checks=False, crazy_mode=False):
         bdb.Bdb.__init__(self)
         self.mainpyfile = ''
         self._wait_for_mainpyfile = 0
@@ -293,6 +309,9 @@ class PGLogger(bdb.Bdb):
         # if True, then don't render any data structures in the trace,
         # and show only outputs
         self.show_only_outputs = show_only_outputs
+
+        # Run using the custom Py2crazy Python interpreter
+        self.crazy_mode = crazy_mode
 
         # a function that takes the output trace as a parameter and
         # processes it
@@ -775,7 +794,7 @@ class PGLogger(bdb.Bdb):
         # encode in a JSON-friendly format now, in order to prevent ill
         # effects of aliasing later down the line ...
         encoded_globals = {}
-        for (k, v) in get_user_globals(tos[0]).items():
+        for (k, v) in get_user_globals(tos[0], at_global_scope=(self.curindex <= 1)).items():
           encoded_val = self.encoder.encode(v, self.get_parent_of_function)
           encoded_globals[k] = encoded_val
 
@@ -869,11 +888,20 @@ class PGLogger(bdb.Bdb):
                              stdout=get_user_stdout(tos[0]))
 
         # optional column numbers for greater precision
-        # (only relevant in a hacked CPython that supports column numbers)
-        if hasattr(frame, 'f_colno'):
-          # -1 is an invalid column number
-          if frame.f_colno >= 0:
-            trace_entry['column'] = frame.f_colno
+        # (only relevant in Py2crazy, a hacked CPython that supports column numbers)
+        if self.crazy_mode:
+          # at the very least, grab the column number
+          trace_entry['column'] = frame.f_colno
+
+          # now try to find start_col and extent
+          # (-1 is an invalid instruction index)
+          if frame.f_lasti >= 0:
+            key = (frame.f_code.co_code, frame.f_lineno, frame.f_colno,frame.f_lasti)
+            if key in self.bytecode_map:
+              v = self.bytecode_map[key]
+              trace_entry['expr_start_col'] = v.start_col
+              trace_entry['expr_width'] = v.extent
+              trace_entry['opcode'] = v.opcode
 
 
         # TODO: refactor into a non-global
@@ -937,6 +965,17 @@ class PGLogger(bdb.Bdb):
             self.breakpoints.append(line_no)
 
 
+        # populate an extent map to get more accurate ranges from code
+        if self.crazy_mode:
+            # in Py2crazy standard library as Python-2.7.5/Lib/super_dis.py
+            import super_dis
+            try:
+                self.bytecode_map = super_dis.get_bytecode_map(self.executed_script)
+            except:
+                # failure oblivious
+                self.bytecode_map = {}
+
+
         # When bdb sets tracing, a number of call and line events happens
         # BEFORE debugger even reaches user's code (and the exact sequence of
         # events depends on python version). So we take special measures to
@@ -965,14 +1004,15 @@ class PGLogger(bdb.Bdb):
             continue
           elif k == '__import__':
             user_builtins[k] = __restricted_import__
+#          else:
+#            if k == 'raw_input':
+#              user_builtins[k] = raw_input_wrapper
+#            elif k == 'input' and is_python3:
+#              # Python 3 input() is Python 2 raw_input()
+#              # user_builtins[k] = raw_input_wrapper
+#              pass
           else:
-            if k == 'raw_input':
-              user_builtins[k] = raw_input_wrapper
-            elif k == 'input' and is_python3:
-              # Python 3 input() is Python 2 raw_input()
-              user_builtins[k] = raw_input_wrapper
-            else:
-              user_builtins[k] = v
+            user_builtins[k] = v
 
         user_builtins['mouse_input'] = mouse_input_wrapper
 
@@ -1105,12 +1145,15 @@ import json
 def exec_script_str(script_str, raw_input_lst_json, options_json, finalizer_func):
   options = json.loads(options_json)
 
-  logger = PGLogger(options['cumulative_mode'], options['heap_primitives'], options['show_only_outputs'], finalizer_func)
+  py_crazy_mode = ('py_crazy_mode' in options and options['py_crazy_mode'])
+
+  logger = PGLogger(options['cumulative_mode'], options['heap_primitives'], options['show_only_outputs'], finalizer_func,
+                    crazy_mode=py_crazy_mode)
 
   # TODO: refactor these NOT to be globals
   global input_string_queue
   input_string_queue = []
-  if raw_input_lst_json:
+  if False and raw_input_lst_json:
     # TODO: if we want to support unicode, remove str() cast
     input_string_queue = [str(e) for e in json.loads(raw_input_lst_json)]
 
@@ -1129,12 +1172,13 @@ def exec_script_str(script_str, raw_input_lst_json, options_json, finalizer_func
 # WARNING: ONLY RUN THIS LOCALLY and never over the web, since
 # security checks are disabled
 def exec_script_str_local(script_str, raw_input_lst_json, cumulative_mode, heap_primitives, finalizer_func):
+  # TODO: add py_crazy_mode option here too ...
   logger = PGLogger(cumulative_mode, heap_primitives, False, finalizer_func, disable_security_checks=True)
 
   # TODO: refactor these NOT to be globals
   global input_string_queue
   input_string_queue = []
-  if raw_input_lst_json:
+  if False and raw_input_lst_json:
     # TODO: if we want to support unicode, remove str() cast
     input_string_queue = [str(e) for e in json.loads(raw_input_lst_json)]
 

@@ -34,12 +34,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // make two copies of ../web_exec.py and give them the following names,
 // then change the first line (starting with #!) to the proper version
 // of the Python interpreter (i.e., Python 2 or Python 3).
+// Note that your hosting provider might have stringent rules for what
+// kind of scripts are allowed to execute. For instance, my provider
+// (Webfaction) seems to let scripts execute only if permissions are
+// something like:
+// -rwxr-xr-x 1 pgbovine pgbovine 2.5K Jul  5 22:46 web_exec_py2.py*
+// (most notably, only the owner of the file should have write
+//  permissions)
 //var python2_backend_script = 'web_exec_py2.py';
 //var python3_backend_script = 'web_exec_py3.py';
 
 // uncomment below if you're running on Google App Engine using the built-in app.yaml
 var python2_backend_script = 'exec';
-var python3_backend_script = '../../../csc_optv3.php';
+var python3_backend_script = '../../action-optv3.php';
+
+// KRAZY experimental KODE!!! Use a custom hacked CPython interpreter
+var python2crazy_backend_script = 'web_exec_py2-crazy.py';
+// On Google App Engine, simply run dev_appserver.py with the
+// crazy custom CPython interpreter to get 2crazy
+//var python2crazy_backend_script = 'exec';
 
 var appMode = 'edit'; // 'edit', 'display', or 'display_no_frills'
 
@@ -75,15 +88,24 @@ $(document).ready(function() {
   $("#embedLinkDiv").hide();
 
   pyInputCodeMirror = CodeMirror(document.getElementById('codeInputPane'), {
-    mode: 'python',
-    lineNumbers: true,
-    tabSize: 4,
-    indentUnit: 4,
-    // convert tab into four spaces:
-    extraKeys: {Tab: function(cm) {cm.replaceSelection("    ", "end");}}
+    mode: 
+    {name: "python", 
+     version: 3, 
+     singleLineStringErrors: false
+    }, 
+    lineNumbers: true, 
+    indentUnit: 3,
+    tabSize: 3,
+    matchBrackets: true,
+    extraKeys: {
+      Tab: function(cm) {
+        var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+        cm.replaceSelection(spaces, "end", "+input");
+      }
+    }
   });
 
-  pyInputCodeMirror.setSize(null, '420px');
+  //pyInputCodeMirror.setSize(null, '240px');
 
 
 
@@ -143,6 +165,10 @@ $(document).ready(function() {
       else if ($('#pythonVersionSelector').val() == '3') {
           backend_script = python3_backend_script;
       }
+      // experimental KRAZY MODE!!!
+      else if ($('#pythonVersionSelector').val() == '2crazy') {
+          backend_script = python2crazy_backend_script;
+      }
 
       if (!backend_script) {
         alert('Error: This server is not configured to run Python ' + $('#pythonVersionSelector').val());
@@ -158,7 +184,8 @@ $(document).ready(function() {
       // set up all options in a JS object
       var options = {cumulative_mode: ($('#cumulativeModeSelector').val() == 'true'),
                      heap_primitives: ($('#heapPrimitivesSelector').val() == 'true'),
-                     show_only_outputs: ($('#showOnlyOutputsSelector').val() == 'true'),};
+                     show_only_outputs: ($('#showOnlyOutputsSelector').val() == 'true'),
+                     py_crazy_mode: ($('#pythonVersionSelector').val() == '2crazy')};
 
       $.get(backend_script,
             {user_script : pyInputCodeMirror.getValue(),
@@ -177,13 +204,14 @@ $(document).ready(function() {
                   if (errorLineNo !== undefined) {
                     // highlight the faulting line in pyInputCodeMirror
                     pyInputCodeMirror.focus();
-                    pyInputCodeMirror.setCursor(errorLineNo, 0);
-                    pyInputCodeMirror.setLineClass(errorLineNo, null, 'errorLine');
+                    
+                    var marked = pyInputCodeMirror.addLineClass(errorLineNo, null, 'errorLine');
+                    var hook = function(marked) { return function() {
+                      pyInputCodeMirror.removeLineClass(marked, null, 'errorLine'); // reset line back to normal
+                      pyInputCodeMirror.off('change', hook); // cancel
+                    }} (marked);
+                    pyInputCodeMirror.on('change', hook);
 
-                    pyInputCodeMirror.setOption('onChange', function() {
-                      pyInputCodeMirror.setLineClass(errorLineNo, null, null); // reset line back to normal
-                      pyInputCodeMirror.setOption('onChange', null); // cancel
-                    });
                   }
 
                   alert(trace[0].exception_msg);
@@ -222,7 +250,10 @@ $(document).ready(function() {
                                                         textualMemoryLabels: ($('#textualMemoryLabelsSelector').val() == 'true'),
                                                         showOnlyOutputs: ($('#showOnlyOutputsSelector').val() == 'true'),
                                                         executeCodeWithRawInputFunc: executeCodeWithRawInput,
-                                                        highlightLines: true
+                                                        highlightLines: true,
+
+                                                        // undocumented experimental modes:
+                                                        pyCrazyMode: ($('#pythonVersionSelector').val() == '2crazy'),
                                                         //allowEditAnnotations: true,
                                                        });
 
@@ -510,6 +541,9 @@ $(document).ready(function() {
     // $("#aliasExampleLink").trigger('click');
   }
 
+  if ($.bbq.getState('raw_input'))
+    window.stdinPane.value = $.bbq.getState('raw_input');
+
   // parse query string options ...
   // ugh, ugly tristate due to the possibility of them being undefined
   var cumulativeState = $.bbq.getState('cumulative');
@@ -575,12 +609,13 @@ $(document).ready(function() {
   $('#genUrlBtn').bind('click', function() {
     var myArgs = {code: pyInputCodeMirror.getValue(),
                   mode: appMode,
-                  cumulative: $('#cumulativeModeSelector').val(),
-                  heapPrimitives: $('#heapPrimitivesSelector').val(),
-                  drawParentPointers: $('#drawParentPointerSelector').val(),
-                  textReferences: $('#textualMemoryLabelsSelector').val(),
-                  showOnlyOutputs: $('#showOnlyOutputsSelector').val(),
-                  py: $('#pythonVersionSelector').val()};
+                  //cumulative: $('#cumulativeModeSelector').val(),
+                  //heapPrimitives: $('#heapPrimitivesSelector').val(),
+                  //drawParentPointers: $('#drawParentPointerSelector').val(),
+                  //textReferences: $('#textualMemoryLabelsSelector').val(),
+                  //showOnlyOutputs: $('#showOnlyOutputsSelector').val(),
+                  //py: $('#pythonVersionSelector').val()
+                  raw_input: window.stdinPane.value};
 
     if (appMode == 'display') {
       myArgs.curInstr = myVisualizer.curInstr;
