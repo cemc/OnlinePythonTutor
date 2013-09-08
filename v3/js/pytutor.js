@@ -2072,10 +2072,12 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
     else if (typ == "number") {
       d3DomElement.append('<span class="numberObj">' + obj + '</span>');
     }
-    else if (obj instanceof Array && obj[0] == "PRIMITIVE") {
-      if (obj[1] == "void")
-        d3DomElement.append('<span class="voidObj">void</span>');
-      else assert(false);
+    else if (obj instanceof Array && obj[0] == "VOID") {
+      d3DomElement.append('<span class="voidObj">void</span>');
+    }
+    else if (obj instanceof Array && obj[0] == "NUMBER-LITERAL") {
+      // actually transmitted as a string
+      d3DomElement.append('<span class="numberObj">' + obj[1] + '</span>');
     }
     else {
       assert(false);
@@ -2262,7 +2264,11 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
 
           // the keys should always be strings, so render them directly (and without quotes):
           // (actually this isn't the case when strings are rendered on the heap)
-          if (typeof kvPair[0] == "string") {
+          if (kvPair[0] instanceof Array 
+               && kvPair[0][0] == "NO-LABEL") {
+            $(keyTd).hide();
+          }
+          else if (typeof kvPair[0] == "string") {
             // common case ...
             var attrnameStr = htmlspecialchars(kvPair[0]);
             keyTd.append('<span class="keyObj">' + attrnameStr + '</span>');
@@ -2998,7 +3004,11 @@ function structurallyEquivalent(obj1, obj2) {
 
 function isPrimitiveType(obj) {
   var typ = typeof obj;
-  return ((obj == null) || (typ != "object") || (obj instanceof Array && obj[0] == "PRIMITIVE"));
+  return ((obj == null) 
+          || (typ != "object") 
+          || (obj instanceof Array && obj[0] == "VOID")
+          || (obj instanceof Array && obj[0] == "NUMBER-LITERAL")
+         );
 }
 
 function getRefID(obj) {
