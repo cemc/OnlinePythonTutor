@@ -141,7 +141,6 @@ $(document).ready(function() {
 
   function executeCode(forceStartingInstr) {
       var backend_script = null;
-      backend_script = python3_backend_script;
       if ($('#pythonVersionSelector').val() == '2') {
           backend_script = python2_backend_script;
       }
