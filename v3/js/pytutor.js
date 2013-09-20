@@ -2215,6 +2215,28 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       // actually transmitted as a string
       d3DomElement.append('<span class="numberObj">' + obj[1] + '</span>');
     }
+    else if (obj instanceof Array && obj[0] == "CHAR-LITERAL") {
+      var asc = obj[1].charCodeAt(0);
+      var ch = obj[1];
+
+      // default
+      var show = asc.toString(16);
+      while (show.length < 4) show = "0" + show;
+      show = "\\u" + show;
+
+      if (ch == "\n") show = "\\n";
+      else if (ch == "\r") show = "\\r";
+      else if (ch == "\t") show = "\\t";
+      else if (ch == "\b") show = "\\b";
+      else if (ch == "\f") show = "\\f";
+      else if (ch == "\'") show = "\\\'";
+      else if (ch == "\"") show = "\\\"";
+      else if (ch == "\\") show = "\\\\";
+      else if (asc >= 32) show = ch;
+
+      // stringObj to make monospace
+      d3DomElement.append('<span class="stringObj">\'' + show + '\'</span>');
+    }
     else {
       assert(false);
     }
@@ -3148,6 +3170,7 @@ function isPrimitiveType(obj) {
           || (typ != "object") 
           || (obj instanceof Array && obj[0] == "VOID")
           || (obj instanceof Array && obj[0] == "NUMBER-LITERAL")
+          || (obj instanceof Array && obj[0] == "CHAR-LITERAL")
          );
 }
 
