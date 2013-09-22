@@ -63,6 +63,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+var entityMap = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': '&quot;',
+  "'": '&#39;',
+  "/": '&#x2F;'
+};
+
+function escapeHtml(string) {
+  return String(string).replace(/[&<>"'\/]/g, function (s) {
+      return entityMap[s];
+    });
+};
 
 var SVG_ARROW_POLYGON = '0,3 12,3 12,0 18,5 12,10 12,7 0,7';
 var SVG_ARROW_HEIGHT = 10; // must match height of SVG_ARROW_POLYGON
@@ -302,6 +316,12 @@ ExecutionVisualizer.prototype.render = function() {
        <textarea id="pyStdout" cols="1" rows="'+outputRows+'" wrap="off" readonly></textarea>\
      </div>';
 
+  if (this.params.stdin && this.params.stdin != "") {
+    var stdinHTML = '<div id="stdinWrap">stdin:<pre id="stdinShow" style="border:1px solid gray"></pre></div>';
+}
+  else
+    var stdinHTML = '';
+
   var codeVizHTML =
     '<div id="dataViz">\
        <table id="stackHeapTable">\
@@ -318,8 +338,9 @@ ExecutionVisualizer.prototype.render = function() {
              </div>\
            </td>\
          </tr>\
-       </table>\
-     </div>';
+       </table>'
++stdinHTML+
+    '</div>';
 
   var vizHeaderHTML =
     '<div id="vizHeader">\
@@ -1281,6 +1302,18 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
 
 
   var curEntry = this.curTrace[this.curInstr];
+
+
+  if (this.params.stdin && this.params.stdin != "") {
+    var stdinPosition = curEntry.stdinPosition || 0;
+    var stdinContent =
+      '<span style="color:lightgray;text-decoration: line-through">'+
+      escapeHtml(this.params.stdin.substr(0, stdinPosition))+
+      '</span>'+
+      escapeHtml(this.params.stdin.substr(stdinPosition));
+    $('#stdinShow').html(stdinContent);
+  }
+
   var hasError = false;
   // bnm  Render a question
   if (curEntry.question) {
