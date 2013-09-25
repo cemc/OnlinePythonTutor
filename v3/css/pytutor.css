@@ -35,7 +35,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* reset some styles to nullify effects of existing stylesheets
    e.g., http://meyerweb.com/eric/tools/css/reset/
+
 */
+
+div.ExecutionVisualizer .numberObj {
+    white-space: nowrap;
+}
+
 div.ExecutionVisualizer {
   /* none for now */
 }
