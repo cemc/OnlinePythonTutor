@@ -152,16 +152,23 @@ function ExecutionVisualizer(domRootID, dat, params) {
     }
   }
 
-  this.hasStdout = ((this.curTrace.length > 0) 
+  if ((this.curTrace.length > 0)
                     && this.curTrace[this.curTrace.length-1]
-                    && this.curTrace[this.curTrace.length-1].stdout);
-  
-  if (this.hasStdout) {
+                    && this.curTrace[this.curTrace.length-1].stdout) {
+    this.hasStdout = true;
     this.stdoutLines = this.curTrace[this.curTrace.length-1].stdout.split("\n").length;
   }
-  else 
+  // if last frame is a step limit
+  else if ((this.curTrace.length > 1)
+                    && this.curTrace[this.curTrace.length-2]
+                    && this.curTrace[this.curTrace.length-2].stdout) {
+    this.hasStdout = true;
+    this.stdoutLines = this.curTrace[this.curTrace.length-2].stdout.split("\n").length;
+  }
+  else {
     this.stdoutLines = -1;
-
+  }
+    
   this.curInstr = 0;
 
   this.params = params;
