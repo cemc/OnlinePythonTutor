@@ -1787,7 +1787,7 @@ ExecutionVisualizer.prototype.precomputeCurTraceLayouts = function() {
       var heapObj = curEntry.heap[id];
       assert(heapObj);
 
-      if (heapObj[0] == 'LIST' || heapObj[0] == 'TUPLE' || heapObj[0] == 'SET') {
+      if (heapObj[0] == 'LIST' || heapObj[0] == 'TUPLE' || heapObj[0] == 'SET' || heapObj[0] == 'QUEUE' || heapObj[0] == 'STACK') {
         $.each(heapObj, function(ind, child) {
           if (ind < 1) return; // skip type tag
 
@@ -2343,10 +2343,18 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       typeLabelPrefix = 'id' + objID + ':';
     }
 
-    if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT') {
+    if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT' || obj[0] == 'QUEUE' || obj[0] == 'STACK') {
       var label = obj[0].toLowerCase();
       if (myViz.params.lang == 'java' && label == 'list')
         visibleLabel = 'array';
+      else if (myViz.params.lang == 'java' && label == 'queue') {
+	  visibleLabel = 'queue';
+	  label = 'list';
+      }
+      else if (myViz.params.lang == 'java' && label == 'stack') {
+	  visibleLabel = 'stack';
+	  label= 'list';
+      }
       else 
         visibleLabel = label;
 
@@ -2358,8 +2366,23 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
         d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + visibleLabel + '</div>');
         d3DomElement.append('<table class="' + label + 'Tbl"></table>');
         var tbl = d3DomElement.children('table');
+	
+	
+	if (obj[0] == 'QUEUE' || obj[0] == 'STACK') { // GWOZDZ TODO: this is where you alter stuff to make it look different.
+	    tbl.append('<tr></tr><tr></tr>');
+	    var headerTr = tbl.find('tr:first');
+	    var contentTr = tbl.find('tr:last');
+	    $.each(obj, function(ind, val) {
+	      if (ind < 1) return; // skip type tag and ID entry                                                                                                                                            	    
+	      // add a new column and then pass in that newly-added column
+	      // as d3DomElement to the recursive call to child:
+	      headerTr.append('<td class="' + label + 'Header"></td>');
 
-        if (obj[0] == 'LIST' || obj[0] == 'TUPLE') {
+	      contentTr.append('<td class="'+ label + 'Elt"></td>');
+	      renderNestedObject(val, contentTr.find('td:last'));
+	   });
+        }
+        else if (obj[0] == 'LIST' || obj[0] == 'TUPLE') {
           tbl.append('<tr></tr><tr></tr>');
           var headerTr = tbl.find('tr:first');
           var contentTr = tbl.find('tr:last');
@@ -3170,7 +3193,7 @@ function structurallyEquivalent(obj1, obj2) {
   }
 
   // for a list or tuple, same size (e.g., a cons cell is a list/tuple of size 2)
-  if (obj1[0] == 'LIST' || obj1[0] == 'TUPLE') {
+  if (obj1[0] == 'LIST' || obj1[0] == 'TUPLE' || obj1[0] == 'QUEUE' || obj1[0] == 'STACK') { 
     return true;
   }
   else {
