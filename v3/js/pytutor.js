@@ -2362,7 +2362,8 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
         d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + visibleLabel + '</div>');
         d3DomElement.append('<table class="' + label + 'Tbl"></table>');
         var tbl = d3DomElement.children('table');
-	
+	/* The table produced for stacks and queues is formed slightly differently than the others,
+	   missing the header row. Two rows made the dashed border not line up properly */
 	if (obj[0] == 'STACK') { 
             tbl.append('<tr></tr><tr></tr>');
             var contentTr = tbl.find('tr:last');
@@ -2374,7 +2375,7 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
 		});
 	    contentTr.append('<td class="'+ label + 'LElt">'+'</td>');
         }
-	else if (obj[0] == 'QUEUE') { // GWOZDZ TODO: this is where you alter stuff to make it look different.
+	else if (obj[0] == 'QUEUE') { 
 	    tbl.append('<tr></tr><tr></tr>');
 	    var contentTr = tbl.find('tr:last');	    
 	    // Add arrows showing in/out direction
