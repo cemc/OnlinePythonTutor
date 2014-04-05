@@ -2347,14 +2347,10 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       var label = obj[0].toLowerCase();
       if (myViz.params.lang == 'java' && label == 'list')
         visibleLabel = 'array';
-      else if (myViz.params.lang == 'java' && label == 'queue') {
+      else if (myViz.params.lang == 'java' && label == 'queue') 
 	  visibleLabel = 'queue';
-	  label = 'list';
-      }
-      else if (myViz.params.lang == 'java' && label == 'stack') {
+      else if (myViz.params.lang == 'java' && label == 'stack') 
 	  visibleLabel = 'stack';
-	  label= 'list';
-      }
       else 
         visibleLabel = label;
 
@@ -2366,21 +2362,30 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
         d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + visibleLabel + '</div>');
         d3DomElement.append('<table class="' + label + 'Tbl"></table>');
         var tbl = d3DomElement.children('table');
-	
-	
-	if (obj[0] == 'QUEUE' || obj[0] == 'STACK') { // GWOZDZ TODO: this is where you alter stuff to make it look different.
+	/* The table produced for stacks and queues is formed slightly differently than the others,
+	   missing the header row. Two rows made the dashed border not line up properly */
+	if (obj[0] == 'STACK') { 
+            tbl.append('<tr></tr><tr></tr>');
+            var contentTr = tbl.find('tr:last');
+            contentTr.append('<td class="'+ label + 'FElt">'+'<span class="stringObj">' + '↔' + '</span>'+'</td>');
+            $.each(obj, function(ind, val) {
+		    if (ind < 1) return; // skip type tag and ID entry
+		    contentTr.append('<td class="'+ label + 'Elt"></td>');
+		    renderNestedObject(val, contentTr.find('td:last'));
+		});
+	    contentTr.append('<td class="'+ label + 'LElt">'+'</td>');
+        }
+	else if (obj[0] == 'QUEUE') { 
 	    tbl.append('<tr></tr><tr></tr>');
-	    var headerTr = tbl.find('tr:first');
-	    var contentTr = tbl.find('tr:last');
+	    var contentTr = tbl.find('tr:last');	    
+	    // Add arrows showing in/out direction
+	    contentTr.append('<td class="'+ label + 'FElt">'+'<span class="stringObj">' + '←' + '</span>'+'</td>');	    
 	    $.each(obj, function(ind, val) {
-	      if (ind < 1) return; // skip type tag and ID entry                                                                                                                                            	    
-	      // add a new column and then pass in that newly-added column
-	      // as d3DomElement to the recursive call to child:
-	      headerTr.append('<td class="' + label + 'Header"></td>');
-
+	      if (ind < 1) return; // skip type tag and ID entry
 	      contentTr.append('<td class="'+ label + 'Elt"></td>');
 	      renderNestedObject(val, contentTr.find('td:last'));
 	   });
+            contentTr.append('<td class="'+ label + 'LElt">'+'<span class="stringObj">' + '←' + '</span>'+'</td>');	    
         }
         else if (obj[0] == 'LIST' || obj[0] == 'TUPLE') {
           tbl.append('<tr></tr><tr></tr>');
