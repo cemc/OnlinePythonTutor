@@ -417,6 +417,7 @@ div.ExecutionVisualizer table.classTbl {
   border: 1px #888 solid;
 }
 
+/* TODO: update this to reflect the addition of queue and stack types. */
 /* only add a border to dicts if they're embedded within another object */
 div.ExecutionVisualizer td.listElt table.dictTbl,
 div.ExecutionVisualizer td.tupleElt table.dictTbl,
