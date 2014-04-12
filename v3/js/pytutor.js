@@ -1809,7 +1809,7 @@ ExecutionVisualizer.prototype.precomputeCurTraceLayouts = function() {
           }
         });
       }
-      else if (heapObj[0] == 'DICT' || heapObj[0] == 'ST') {
+      else if (heapObj[0] == 'DICT') {
         $.each(heapObj, function(ind, child) {
           if (ind < 1) return; // skip type tag
 
@@ -2343,7 +2343,7 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       typeLabelPrefix = 'id' + objID + ':';
     }
 
-    if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT' || obj[0] == 'ST' || obj[0] == 'QUEUE' || obj[0] == 'STACK') {
+    if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT' || obj[0] == 'QUEUE' || obj[0] == 'STACK') {
       var label = obj[0].toLowerCase();
       if (myViz.params.lang == 'java' && label == 'list')
         visibleLabel = 'array';
@@ -2351,10 +2351,8 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
 	  visibleLabel = 'queue';
       else if (myViz.params.lang == 'java' && label == 'stack') 
 	  visibleLabel = 'stack';
-      else if (myViz.params.lang == 'java' && label == 'st') {
+      else if (myViz.params.lang == 'java' && label == 'dict')
 	  visibleLabel = 'symbol table';
-	  label = 'dict'
-      }
       else 
         visibleLabel = label;
 
@@ -2449,7 +2447,7 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
             renderNestedObject(val, curTr.find('td:last'));
           });
         }
-        else if (obj[0] == 'DICT' || obj[0] == 'ST') {
+        else if (obj[0] == 'DICT') {
           $.each(obj, function(ind, kvPair) {
             if (ind < 1) return; // skip 'DICT' tag
 
@@ -3221,7 +3219,7 @@ function structurallyEquivalent(obj1, obj2) {
   else {
     var startingInd = -1;
 
-    if (obj1[0] == 'DICT' || obj1[0] == 'ST') {
+    if (obj1[0] == 'DICT') {
       startingInd = 2;
     }
     else if (obj1[0] == 'INSTANCE') {
