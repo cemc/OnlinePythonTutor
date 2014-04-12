@@ -2395,17 +2395,30 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
           tbl.append('<tr></tr><tr></tr>');
           var headerTr = tbl.find('tr:first');
           var contentTr = tbl.find('tr:last');
-          $.each(obj, function(ind, val) {
-            if (ind < 1) return; // skip type tag and ID entry
+          
+          // i: actual index in json object; ind: apparent index
+          for (var i=1, ind=0; i<obj.length; i++) {
+            val = obj[i];
 
-            // add a new column and then pass in that newly-added column
-            // as d3DomElement to the recursive call to child:
-            headerTr.append('<td class="' + label + 'Header"></td>');
-            headerTr.find('td:last').append(ind - 1);
-
-            contentTr.append('<td class="'+ label + 'Elt"></td>');
-            renderNestedObject(val, contentTr.find('td:last'));
-          });
+            if (val instanceof Array && val[0] == 'ELIDE') {
+              headerTr.append('<td class="' + label + 'Header"></td>');
+              headerTr.find('td:last').append("&hellip;");
+              
+              contentTr.append('<td class="'+ label + 'Elt"></td>');
+              contentTr.find('td:last').append("&hellip;");
+              ind += val[1]; // val[1] is the number of cells to skip
+            }
+            else {
+              // add a new column and then pass in that newly-added column
+              // as d3DomElement to the recursive call to child:
+              headerTr.append('<td class="' + label + 'Header"></td>');
+              headerTr.find('td:last').append(ind);
+              
+              contentTr.append('<td class="'+ label + 'Elt"></td>');
+              renderNestedObject(val, contentTr.find('td:last'));
+              ind++;
+            }
+          };
         }
         else if (obj[0] == 'SET') {
           // create an R x C matrix:
@@ -3243,6 +3256,7 @@ function isPrimitiveType(obj) {
           || (obj instanceof Array && obj[0] == "VOID")
           || (obj instanceof Array && obj[0] == "NUMBER-LITERAL")
           || (obj instanceof Array && obj[0] == "CHAR-LITERAL")
+          || (obj instanceof Array && obj[0] == "ELIDE")
          );
 }
 
