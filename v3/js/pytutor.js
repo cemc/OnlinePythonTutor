@@ -63,20 +63,43 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-var entityMap = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': '&quot;',
-  "'": '&#39;',
-  "/": '&#x2F;'
-};
+/* API for adding a hook.
+ If multiple functions are added to a hook, the oldest goes first.
+ The func should take a list of arguments, even though try_hook
+ wants its arguments packaged in an array.
 
-function escapeHtml(string) {
-  return String(string).replace(/[&<>"'\/]/g, function (s) {
-      return entityMap[s];
-    });
-};
+ A hook should return an array whose first element is a boolean,
+ true if it completely handled the situation (no further hooks
+ or the base function should be called), false otherwise. If the
+ hook semantically represents a functions that returns something,
+ the second value of the array is that something. 
+
+ Hook callbacks can return false or undefined (i.e. no return
+ value) in lieu of [false]. But try_hook always returns [false].
+*/
+
+var add_pytutor_hook = function(hook_name, func) {
+  if (pytutor_hooks[hook_name])
+    pytutor_hooks[hook_name].push();
+  else
+    pytutor_hooks[hook_name] = [func];
+}
+
+// this is global in order to reach static functions like isPrimitiveType
+var pytutor_hooks = {}; // keys, hook names; values, array of functions
+
+// note that args should be an array, it is unpacked upon calling the callback
+// returns [false], [true], or [true, return_value]
+var try_hook = function(hook_name, args) {
+  if (pytutor_hooks[hook_name]) {
+    for (var i=0; i<pytutor_hooks[hook_name].length; i++) {
+      var handled_and_result = pytutor_hooks[hook_name][i].apply(null, args); // no "this"
+      if (handled_and_result && handled_and_result[0]) 
+        return handled_and_result;
+    } 
+  }
+  return [false];
+}
 
 var SVG_ARROW_POLYGON = '0,3 12,3 12,0 18,5 12,10 12,7 0,7';
 var SVG_ARROW_HEIGHT = 10; // must match height of SVG_ARROW_POLYGON
@@ -133,7 +156,8 @@ function ExecutionVisualizer(domRootID, dat, params) {
   // 'step_line' entry immediately following it. this filtering allows the
   // visualization to not show as much redundancy.
   
-  //this.curTrace = this.curTrace.filter(function(e) {return e.event != 'call';});
+  if (!params.dontRemoveCalls)
+    this.curTrace = this.curTrace.filter(function(e) {return e.event != 'call';});
 
   // if the final entry is raw_input or mouse_input, then trim it from the trace and
   // set a flag to prompt for user input when execution advances to the
@@ -152,23 +176,6 @@ function ExecutionVisualizer(domRootID, dat, params) {
     }
   }
 
-  if ((this.curTrace.length > 0)
-                    && this.curTrace[this.curTrace.length-1]
-                    && this.curTrace[this.curTrace.length-1].stdout) {
-    this.hasStdout = true;
-    this.stdoutLines = this.curTrace[this.curTrace.length-1].stdout.split("\n").length;
-  }
-  // if last frame is a step limit
-  else if ((this.curTrace.length > 1)
-                    && this.curTrace[this.curTrace.length-2]
-                    && this.curTrace[this.curTrace.length-2].stdout) {
-    this.hasStdout = true;
-    this.stdoutLines = this.curTrace[this.curTrace.length-2].stdout.split("\n").length;
-  }
-  else {
-    this.stdoutLines = -1;
-  }
-    
   this.curInstr = 0;
 
   this.params = params;
@@ -196,9 +203,6 @@ function ExecutionVisualizer(domRootID, dat, params) {
       this.params.arrowLines = !(this.params.highlightLines);
   }
 
-  if (this.params.lang == undefined) 
-    this.params.lang = "python";
-
   this.compactFuncLabels = this.params.compactFuncLabels;
 
   // audible!
@@ -209,6 +213,7 @@ function ExecutionVisualizer(domRootID, dat, params) {
   // needs to be unique!
   this.visualizerID = curVisualizerID;
   curVisualizerID++;
+
 
   this.leftGutterSvgInitialized = false;
   this.arrowOffsetY = undefined;
@@ -268,6 +273,7 @@ function ExecutionVisualizer(domRootID, dat, params) {
 
   this.enableTransitions = false; // EXPERIMENTAL - enable transition effects
 
+  try_hook("end_constructor", [this]);
 
   this.hasRendered = false;
 
@@ -314,20 +320,12 @@ ExecutionVisualizer.prototype.render = function() {
        <div id="annotateLinkDiv"><button id="annotateBtn" type="button">Annotate this step</button></div>\
      </div>';
 
-  var outputRows = Math.min(10, myViz.stdoutLines);
-
   var outputsHTML =
     '<div id="htmlOutputDiv"></div>\
      <div id="progOutputs">\
        Program output:<br/>\
-       <textarea id="pyStdout" cols="1" rows="'+outputRows+'" wrap="off" readonly></textarea>\
+       <textarea id="pyStdout" cols="50" rows="10" wrap="off" readonly></textarea>\
      </div>';
-
-  if (this.params.stdin && this.params.stdin != "") {
-    var stdinHTML = '<div id="stdinWrap">stdin:<pre id="stdinShow" style="border:1px solid gray"></pre></div>';
-}
-  else
-    var stdinHTML = '';
 
   var codeVizHTML =
     '<div id="dataViz">\
@@ -345,9 +343,8 @@ ExecutionVisualizer.prototype.render = function() {
              </div>\
            </td>\
          </tr>\
-       </table>'
-+stdinHTML+
-    '</div>';
+       </table>\
+     </div>';
 
   var vizHeaderHTML =
     '<div id="vizHeader">\
@@ -489,6 +486,13 @@ ExecutionVisualizer.prototype.render = function() {
     this.domRoot.find('#jmpLastInstr').hide();
   }
 
+  if (this.params.codeDivWidth) {
+    // set width once
+    this.domRoot.find('#codeDisplayDiv').width(
+      this.params.codeDivWidth);
+    // it will propagate to the slider
+  }
+
   // enable left-right draggable pane resizer (originally from David Pritchard)
   this.domRoot.find('#codeDisplayDiv').resizable({
     handles: "e", 
@@ -499,26 +503,17 @@ ExecutionVisualizer.prototype.render = function() {
         myViz.params.updateOutputCallback(this);
     }});
 
-  if (this.params.codeDivWidth) {
-    // set width once
-    this.domRoot.find('#codeDisplayDiv').width(
-      this.params.codeDivWidth);
-    // it will propagate to the slider
-  }
-
   if (this.params.codeDivHeight) {
     this.domRoot.find('#pyCodeOutputDiv')
       .css('max-height', this.params.codeDivHeight + 'px');
   }
 
-  var globalsLabel = "Global frame";
-  if (myViz.params.lang == 'java') globalsLabel = "Static fields";
-  
+
   // create a persistent globals frame
   // (note that we need to keep #globals_area separate from #stack for d3 to work its magic)
   this.domRoot.find("#globals_area").append('<div class="stackFrame" id="'
     + myViz.generateID('globals') + '"><div id="' + myViz.generateID('globals_header')
-    + '" class="stackFrameHeader">'+globalsLabel+'</div><table class="stackFrameVarTable" id="'
+    + '" class="stackFrameHeader">Global frame</div><table class="stackFrameVarTable" id="'
     + myViz.generateID('global_table') + '"></table></div>');
 
 
@@ -597,6 +592,7 @@ ExecutionVisualizer.prototype.render = function() {
     this.curInstr = this.curTrace.length - 1;
   }
 
+  try_hook("end_render", [this]);
 
   this.precomputeCurTraceLayouts();
 
@@ -1309,18 +1305,6 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
 
 
   var curEntry = this.curTrace[this.curInstr];
-
-
-  if (this.params.stdin && this.params.stdin != "") {
-    var stdinPosition = curEntry.stdinPosition || 0;
-    var stdinContent =
-      '<span style="color:lightgray;text-decoration: line-through">'+
-      escapeHtml(this.params.stdin.substr(0, stdinPosition))+
-      '</span>'+
-      escapeHtml(this.params.stdin.substr(stdinPosition));
-    $('#stdinShow').html(stdinContent);
-  }
-
   var hasError = false;
   // bnm  Render a question
   if (curEntry.question) {
@@ -1638,7 +1622,7 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
 
   // if there isn't anything in curEntry.stdout, don't even bother
   // displaying the pane
-  if (myViz.hasStdout) {
+  if (curEntry.stdout) {
     this.domRoot.find('#progOutputs').show();
 
     // keep original horizontal scroll level:
@@ -1701,6 +1685,8 @@ ExecutionVisualizer.prototype.updateOutput = function(smoothTransition) {
       }
     }
   }
+
+  try_hook("end_updateOutput", [myViz]);
 
 } // end of updateOutput
 
@@ -1776,6 +1762,12 @@ ExecutionVisualizer.prototype.precomputeCurTraceLayouts = function() {
       return null;
     }
 
+    function isLinearObj(heapObj) {
+      var hook_result = try_hook("isLinearObj", [heapObj]);
+      if (hook_result[0]) return hook_result[1];
+
+      return heapObj[0] == 'LIST' || heapObj[0] == 'TUPLE' || heapObj[0] == 'SET';
+    }
 
     function recurseIntoObject(id, curRow, newRow) {
       //console.log('recurseIntoObject', id,
@@ -1787,7 +1779,7 @@ ExecutionVisualizer.prototype.precomputeCurTraceLayouts = function() {
       var heapObj = curEntry.heap[id];
       assert(heapObj);
 
-      if (heapObj[0] == 'LIST' || heapObj[0] == 'TUPLE' || heapObj[0] == 'SET' || heapObj[0] == 'QUEUE' || heapObj[0] == 'STACK') {
+      if (isLinearObj(heapObj)) {
         $.each(heapObj, function(ind, child) {
           if (ind < 1) return; // skip type tag
 
@@ -2210,29 +2202,23 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
 
 
   function renderPrimitiveObject(obj, d3DomElement) {
+    if (try_hook("renderPrimitiveObject", [obj, d3DomElement])[0])
+      return;
+
     var typ = typeof obj;
 
     if (obj == null) {
-      if (myViz.params.lang == 'java')
-        d3DomElement.append('<span class="nullObj">null</span>');
-      else
-        d3DomElement.append('<span class="nullObj">None</span>');
+      d3DomElement.append('<span class="nullObj">None</span>');
     }
     else if (typ == "number") {
       d3DomElement.append('<span class="numberObj">' + obj + '</span>');
     }
     else if (typ == "boolean") {
       if (obj) {
-        if (myViz.params.lang == 'java')
-          d3DomElement.append('<span class="boolObj">true</span>');
-        else
-          d3DomElement.append('<span class="boolObj">True</span>');
+        d3DomElement.append('<span class="boolObj">True</span>');
       }
       else {
-        if (myViz.params.lang == 'java')
-          d3DomElement.append('<span class="boolObj">false</span>');
-        else
-          d3DomElement.append('<span class="boolObj">False</span>');
+        d3DomElement.append('<span class="boolObj">False</span>');
       }
     }
     else if (typ == "string") {
@@ -2244,38 +2230,6 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       literalStr = '"' + literalStr + '"';
 
       d3DomElement.append('<span class="stringObj">' + literalStr + '</span>');
-    }
-    else if (typ == "number") {
-      d3DomElement.append('<span class="numberObj">' + obj + '</span>');
-    }
-    else if (obj instanceof Array && obj[0] == "VOID") {
-      d3DomElement.append('<span class="voidObj">void</span>');
-    }
-    else if (obj instanceof Array && obj[0] == "NUMBER-LITERAL") {
-      // actually transmitted as a string
-      d3DomElement.append('<span class="numberObj">' + obj[1] + '</span>');
-    }
-    else if (obj instanceof Array && obj[0] == "CHAR-LITERAL") {
-      var asc = obj[1].charCodeAt(0);
-      var ch = obj[1];
-
-      // default
-      var show = asc.toString(16);
-      while (show.length < 4) show = "0" + show;
-      show = "\\u" + show;
-
-      if (ch == "\n") show = "\\n";
-      else if (ch == "\r") show = "\\r";
-      else if (ch == "\t") show = "\\t";
-      else if (ch == "\b") show = "\\b";
-      else if (ch == "\f") show = "\\f";
-      else if (ch == "\'") show = "\\\'";
-      else if (ch == "\"") show = "\\\"";
-      else if (ch == "\\") show = "\\\\";
-      else if (asc >= 32) show = ch;
-
-      // stringObj to make monospace
-      d3DomElement.append('<span class="stringObj">\'' + show + '\'</span>');
     }
     else {
       assert(false);
@@ -2343,80 +2297,36 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
       typeLabelPrefix = 'id' + objID + ':';
     }
 
-    if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT' || obj[0] == 'QUEUE' || obj[0] == 'STACK') {
+    var hook_result = try_hook("renderCompoundObject", [objID, d3DomElement, isTopLevel, obj, typeLabelPrefix, renderNestedObject]);
+    if (hook_result[0]) return;
+
+    if (obj[0] == 'LIST' || obj[0] == 'TUPLE' || obj[0] == 'SET' || obj[0] == 'DICT') {
       var label = obj[0].toLowerCase();
-      if (myViz.params.lang == 'java' && label == 'list')
-        visibleLabel = 'array';
-      else if (myViz.params.lang == 'java' && label == 'queue') 
-	  visibleLabel = 'queue';
-      else if (myViz.params.lang == 'java' && label == 'stack') 
-	  visibleLabel = 'stack';
-      else if (myViz.params.lang == 'java' && label == 'dict')
-	  visibleLabel = 'symbol table';
-      else 
-        visibleLabel = label;
 
       assert(obj.length >= 1);
       if (obj.length == 1) {
-        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + 'empty ' + visibleLabel + '</div>');
+        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + 'empty ' + label + '</div>');
       }
       else {
-        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + visibleLabel + '</div>');
+        d3DomElement.append('<div class="typeLabel">' + typeLabelPrefix + label + '</div>');
         d3DomElement.append('<table class="' + label + 'Tbl"></table>');
         var tbl = d3DomElement.children('table');
-	/* The table produced for stacks and queues is formed slightly differently than the others,
-	   missing the header row. Two rows made the dashed border not line up properly */
-	if (obj[0] == 'STACK') { 
-            tbl.append('<tr></tr><tr></tr>');
-            var contentTr = tbl.find('tr:last');
-            contentTr.append('<td class="'+ label + 'FElt">'+'<span class="stringObj">' + '↔' + '</span>'+'</td>');
-            $.each(obj, function(ind, val) {
-		    if (ind < 1) return; // skip type tag and ID entry
-		    contentTr.append('<td class="'+ label + 'Elt"></td>');
-		    renderNestedObject(val, contentTr.find('td:last'));
-		});
-	    contentTr.append('<td class="'+ label + 'LElt">'+'</td>');
-        }
-	else if (obj[0] == 'QUEUE') { 
-	    tbl.append('<tr></tr><tr></tr>');
-	    var contentTr = tbl.find('tr:last');	    
-	    // Add arrows showing in/out direction
-	    contentTr.append('<td class="'+ label + 'FElt">'+'<span class="stringObj">' + '←' + '</span>'+'</td>');	    
-	    $.each(obj, function(ind, val) {
-	      if (ind < 1) return; // skip type tag and ID entry
-	      contentTr.append('<td class="'+ label + 'Elt"></td>');
-	      renderNestedObject(val, contentTr.find('td:last'));
-	   });
-            contentTr.append('<td class="'+ label + 'LElt">'+'<span class="stringObj">' + '←' + '</span>'+'</td>');	    
-        }
-        else if (obj[0] == 'LIST' || obj[0] == 'TUPLE') {
+
+        if (obj[0] == 'LIST' || obj[0] == 'TUPLE') {
           tbl.append('<tr></tr><tr></tr>');
           var headerTr = tbl.find('tr:first');
           var contentTr = tbl.find('tr:last');
-          
-          // i: actual index in json object; ind: apparent index
-          for (var i=1, ind=0; i<obj.length; i++) {
-            val = obj[i];
+          $.each(obj, function(ind, val) {
+            if (ind < 1) return; // skip type tag and ID entry
 
-            if (val instanceof Array && val[0] == 'ELIDE') {
-              headerTr.append('<td class="' + label + 'Header"></td>');
-              headerTr.find('td:last').append("&hellip;");
-              
-              contentTr.append('<td class="'+ label + 'Elt"></td>');
-              contentTr.find('td:last').append("&hellip;");
-              ind += val[1]; // val[1] is the number of cells to skip
-            }
-            else {
-              // add a new column and then pass in that newly-added column
-              // as d3DomElement to the recursive call to child:
-              headerTr.append('<td class="' + label + 'Header"></td>');
-              headerTr.find('td:last').append(ind);
-              
-              contentTr.append('<td class="'+ label + 'Elt"></td>');
-              renderNestedObject(val, contentTr.find('td:last'));
-              ind++;
-            }
-          };
+            // add a new column and then pass in that newly-added column
+            // as d3DomElement to the recursive call to child:
+            headerTr.append('<td class="' + label + 'Header"></td>');
+            headerTr.find('td:last').append(ind - 1);
+
+            contentTr.append('<td class="'+ label + 'Elt"></td>');
+            renderNestedObject(val, contentTr.find('td:last'));
+          });
         }
         else if (obj[0] == 'SET') {
           // create an R x C matrix:
@@ -2505,11 +2415,7 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
 
           // the keys should always be strings, so render them directly (and without quotes):
           // (actually this isn't the case when strings are rendered on the heap)
-          if (kvPair[0] instanceof Array 
-               && kvPair[0][0] == "NO-LABEL") {
-            $(keyTd).hide();
-          }
-          else if (typeof kvPair[0] == "string") {
+          if (typeof kvPair[0] == "string") {
             // common case ...
             var attrnameStr = htmlspecialchars(kvPair[0]);
             keyTd.append('<span class="keyObj">' + attrnameStr + '</span>');
@@ -3093,6 +2999,8 @@ ExecutionVisualizer.prototype.renderDataStructures = function() {
     highlight_frame(myViz.generateID('globals'));
   }
 
+  try_hook("end_renderDataStructures", [myViz]);  
+
 }
 
 
@@ -3213,7 +3121,7 @@ function structurallyEquivalent(obj1, obj2) {
   }
 
   // for a list or tuple, same size (e.g., a cons cell is a list/tuple of size 2)
-  if (obj1[0] == 'LIST' || obj1[0] == 'TUPLE' || obj1[0] == 'QUEUE' || obj1[0] == 'STACK') { 
+  if (obj1[0] == 'LIST' || obj1[0] == 'TUPLE') {
     return true;
   }
   else {
@@ -3248,14 +3156,11 @@ function structurallyEquivalent(obj1, obj2) {
 
 
 function isPrimitiveType(obj) {
+  var hook_result = try_hook("isPrimitiveType", [obj]);
+  if (hook_result[0]) return hook_result[1];
+
   var typ = typeof obj;
-  return ((obj == null) 
-          || (typ != "object") 
-          || (obj instanceof Array && obj[0] == "VOID")
-          || (obj instanceof Array && obj[0] == "NUMBER-LITERAL")
-          || (obj instanceof Array && obj[0] == "CHAR-LITERAL")
-          || (obj instanceof Array && obj[0] == "ELIDE")
-         );
+  return ((obj == null) || (typ != "object"));
 }
 
 function getRefID(obj) {
